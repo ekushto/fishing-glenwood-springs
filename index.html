@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glenwood Springs Fishing Conditions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a18;
+    --ink-2: #4a4a44;
+    --ink-3: #8a8a80;
+    --paper: #f5f2eb;
+    --paper-2: #ede9df;
+    --paper-3: #e2ddd0;
+    --river: #3a7ca5;
+    --river-light: #d4e8f5;
+    --green: #3a7a4a;
+    --green-bg: #e4f0e6;
+    --amber: #b06a00;
+    --amber-bg: #fdefd4;
+    --red: #a03030;
+    --red-bg: #fde8e8;
+    --rule: rgba(26,26,24,0.12);
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding: 1.25rem 1.5rem 1rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    letter-spacing: .02em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .header-left .sub {
+    font-size: 0.78rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  #update-time {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-3);
+  }
+
+  .header-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: opacity .15s;
+    white-space: nowrap;
+  }
+  .header-btn:hover { opacity: .75; }
+  #refresh-btn.loading { opacity: .5; pointer-events: none; }
+
+  /* ── Period Toggle ── */
+  .period-toggle {
+    display: inline-flex;
+    border: 1px solid var(--ink);
+    margin-left: 8px;
+  }
+
+  .period-toggle button {
+    background: transparent;
+    color: var(--ink);
+    border: none;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    cursor: pointer;
+    opacity: .4;
+    transition: opacity .15s, background .15s;
+  }
+
+  .period-toggle button:not(:last-child) {
+    border-right: 1px solid var(--ink);
+  }
+
+  .period-toggle button:hover { opacity: .7; }
+  .period-toggle button.active { opacity: 1; background: var(--ink); color: var(--paper); }
+
+  /* ── Loading / Error ── */
+  #loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 4rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--rule);
+    border-top-color: var(--river);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #error-state {
+    display: none;
+    padding: 2rem 1.5rem;
+    background: var(--red-bg);
+    color: var(--red);
+    font-size: 0.85rem;
+    margin: 1rem 1.5rem;
+  }
+
+  /* ── Main ── */
+  main { display: none; }
+
+  /* ── Section ── */
+  .section {
+    border-bottom: 1px solid var(--rule);
+    padding: 1.5rem 1.5rem 1.75rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    letter-spacing: .03em;
+    line-height: 1;
+  }
+
+  .section-sub {
+    font-size: 0.75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  /* ── Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .card {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 12px 14px 10px;
+  }
+
+  .card-label {
+    font-size: 0.68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+
+  .card-value {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .card-value .unit {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--ink-3);
+    margin-left: 2px;
+  }
+
+  .card-delta {
+    font-size: 0.7rem;
+    color: var(--ink-3);
+    margin-top: 5px;
+    font-family: var(--font-mono);
+  }
+
+  .card-delta.up { color: var(--red); }
+  .card-delta.down { color: var(--green); }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 10px 2px;
+    margin-top: 6px;
+  }
+
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-red   { background: var(--red-bg);   color: var(--red);   }
+
+  /* ── Chart ── */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 14px 14px 10px;
+  }
+
+  .chart-title {
+    font-size: 0.68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.68rem;
+    color: var(--ink-2);
+    letter-spacing: .03em;
+  }
+
+  .leg-swatch {
+    width: 14px;
+    height: 3px;
+    border-radius: 1px;
+  }
+
+  .leg-swatch.dashed {
+    background: transparent;
+    border-top: 2px dashed currentColor;
+    height: 0;
+    margin-top: 2px;
+  }
+
+  .chart-inner { position: relative; height: 200px; }
+
+  /* ── Note ── */
+  .note {
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    font-style: italic;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* ── Warning bar ── */
+  .warning-bar {
+    display: none;
+    background: var(--amber-bg);
+    border-left: 3px solid var(--amber);
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    color: var(--amber);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  /* ── Weather ── */
+  .wx-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+
+  .wx-card {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 10px 10px 9px;
+    text-align: center;
+  }
+
+  .wx-day {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 5px;
+  }
+
+  .wx-icon { font-size: 1.5rem; line-height: 1; margin-bottom: 4px; }
+
+  .wx-temps {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+
+  .wx-temps .lo { color: var(--ink-3); }
+
+  .wx-precip {
+    font-size: 0.65rem;
+    color: var(--river);
+    margin-top: 3px;
+    font-family: var(--font-mono);
+  }
+
+  .wx-desc {
+    font-size: 0.62rem;
+    color: var(--ink-3);
+    margin-top: 3px;
+    line-height: 1.3;
+  }
+
+  /* ── Hatches ── */
+  .hatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin-top: 0.25rem;
+  }
+
+  .hatch-card {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 10px 12px 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .hatch-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .hatch-detail {
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+
+  .hatch-status {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .hatch-status.peak   { color: var(--green); }
+  .hatch-status.active { color: var(--amber); }
+  .hatch-status.soon   { color: var(--ink-3); }
+
+  /* ── Footer ── */
+  footer {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid var(--rule);
+  }
+
+  .footer-sources {
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    line-height: 1.8;
+  }
+
+  .footer-sources a {
+    color: var(--river);
+    text-decoration: none;
+    font-family: var(--font-mono);
+  }
+  .footer-sources a:hover { text-decoration: underline; }
+
+  .footer-brand {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--ink-3);
+    letter-spacing: .05em;
+  }
+
+  /* ── Responsive ── */
+  /* ── Pressure ── */
+
+  /* ── Share Toast ── */
+  #share-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 999;
+  }
+  #share-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Print ── */
+  @media print {
+    #refresh-btn, .period-toggle, #share-btn, #summary-bar, #wx-section { display: none !important; }
+    header { border-bottom: 2px solid #000; }
+    .section { break-inside: avoid; }
+    .chart-inner { height: 150px !important; }
+    body { background: #fff; }
+  }
+
+  /* ── Summary Bar ── */
+  #summary-bar {
+    display: none;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 8px 1.5rem;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    letter-spacing: .03em;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #summary-bar .sum-item { margin-right: 1.5rem; }
+  #summary-bar .sum-label { color: rgba(245,242,235,0.5); margin-right: 4px; }
+  #summary-bar .sum-good  { color: #7ec48a; }
+  #summary-bar .sum-warn  { color: #f5c97a; }
+  #summary-bar .sum-bad   { color: #f08080; }
+
+  @media (max-width: 480px) {
+    #summary-bar { padding: 8px 1rem; font-size: 0.7rem; }
+    header { padding: 1rem 1rem 0.75rem; }
+    .section { padding: 1.25rem 1rem 1.5rem; }
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .card { padding: 10px 11px 9px; }
+    .card-value { font-size: 1.35rem; }
+    .card-label { font-size: 0.65rem; }
+    .badge { font-size: 0.68rem; padding: 4px 9px 3px; }
+    .chart-inner { height: 170px; }
+    .chart-wrap { padding: 12px 10px 8px; }
+    .chart-legend { gap: 8px; }
+    .section-header { margin-bottom: 1rem; gap: 0.5rem; }
+    footer { padding: 1rem; flex-direction: column; gap: 0.75rem; }
+    .footer-sources { font-size: 0.65rem; }
+    .footer-brand { display: none; }
+    #update-time { font-size: 0.68rem; }
+  }
+  @media (max-width: 360px) {
+    .card-value { font-size: 1.2rem; }
+    .cards { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Glenwood Springs Fishing Conditions</h1>
+    <div class="sub">Roaring Fork Valley · Live USGS Data</div>
+  </div>
+  <div class="header-right">
+    <div id="update-time">—</div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:6px">
+      <button id="share-btn" class="header-btn" onclick="shareConditions()" style="opacity:.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">⬆ Share</button>
+      <button id="refresh-btn" class="header-btn" onclick="loadData()">↺ Refresh</button>
+      <div class="period-toggle">
+        <button id="btn-7d"  class="active" onclick="setPeriod('P7D',this)">7D</button>
+        <button id="btn-14d"              onclick="setPeriod('P14D',this)">14D</button>
+        <button id="btn-30d"              onclick="setPeriod('P30D',this)">30D</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="share-toast">Link copied</div>
+<div id="summary-bar"></div>
+<div id="loading-state"><div class="spinner"></div>Fetching live gauge data…</div>
+<div id="error-state">Unable to load USGS data. Check connection and try refreshing.</div>
+
+<main id="main-content">
+
+  <!-- ── Section 1: Colorado River ── -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title">Colorado River</div>
+      <div class="section-sub">South Canyon · Dino · New Castle</div>
+    </div>
+
+    <div class="warning-bar" id="co-warning"></div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">Flow below confluence</div>
+        <div class="card-value" id="co-flow-val">—</div>
+        <div class="card-delta" id="co-flow-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Clarity — blended</div>
+        <div class="card-value" id="co-blended-val">—</div>
+        <div id="co-clarity-badge"></div>
+        <div class="card-delta" id="co-blended-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">CO above Glenwood</div>
+        <div class="card-value" id="co-above-turb-val">—</div>
+        <div class="card-delta" style="margin-top:6px;font-size:0.65rem;color:var(--ink-3)">09071750 · turbidity</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Roaring Fork @ Glenwood</div>
+        <div class="card-value" id="rf-turb-co-val">—</div>
+        <div class="card-delta" style="margin-top:6px;font-size:0.65rem;color:var(--ink-3)">09085000 · turbidity</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title" id="chart-title-co"></div>
+      <div class="chart-legend">
+        <span class="leg-item"><span class="leg-swatch" style="background:#7a6aaa"></span>Flow below Glenwood (cfs)</span>
+        <span class="leg-item"><span class="leg-swatch dashed" style="color:#3a7ca5;width:14px"></span>CO above Glenwood (FNU)</span>
+        <span class="leg-item"><span class="leg-swatch dashed" style="color:#6aaa7a;width:14px"></span>Roaring Fork (FNU)</span>
+        <span class="leg-item"><span class="leg-swatch dashed" style="color:#c0622a;width:14px"></span>Blended (FNU)</span>
+      </div>
+      <div class="chart-inner"><canvas id="coTurbChart" role="img" aria-label="7-day turbidity trends and flow for Colorado River section"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ── Section 2: RF Lower ── -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title">Roaring Fork</div>
+      <div class="section-sub">Carbondale to Two Rivers</div>
+    </div>
+
+    <div class="warning-bar" id="rf-warning"></div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">Flow @ Glenwood</div>
+        <div class="card-value" id="rf-flow-val">—</div>
+        <div id="rf-float-badge"></div>
+        <div class="card-delta" id="rf-flow-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Turbidity @ Glenwood</div>
+        <div class="card-value" id="rf-turb-val">—</div>
+        <div id="rf-clarity-badge"></div>
+        <div class="card-delta" id="rf-turb-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Trend (24h)</div>
+        <div class="card-value" id="rf-trend-val" style="font-size:1.2rem;padding-top:4px">—</div>
+        <div class="card-delta" id="rf-trend-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Glenwood − Emma (est.)</div>
+        <div class="card-value" id="crystal-implied-val">—</div>
+        <div class="card-delta">Crystal + tribs input</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Water Temp @ Glenwood</div>
+        <div class="card-value" id="rf-temp-val">—</div>
+        <div id="rf-temp-badge"></div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title" id="chart-title-rf"></div>
+      <div class="chart-legend">
+        <span class="leg-item"><span class="leg-swatch" style="background:#3a7ca5"></span>Flow (cfs, left)</span>
+        <span class="leg-item"><span class="leg-swatch dashed" style="color:#c0622a;width:14px"></span>Turbidity (FNU, right)</span>
+      </div>
+      <div class="chart-inner"><canvas id="rfLowerChart" role="img" aria-label="7-day Roaring Fork flow and turbidity at Glenwood Springs"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ── Section 3: RF Upper ── -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title">Roaring Fork Upper</div>
+      <div class="section-sub">Catherine Store · Emma · Satank</div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">Flow @ Emma</div>
+        <div class="card-value" id="emma-flow-val">—</div>
+        <div id="emma-float-badge"></div>
+        <div class="card-delta" id="emma-flow-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Crystal @ Redstone</div>
+        <div class="card-value" id="crystal-flow-val">—</div>
+        <div class="card-delta" id="crystal-flow-delta"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Turbidity</div>
+        <div class="card-value" style="font-size:1rem;padding-top:6px;color:var(--ink-3)">No sensor</div>
+        <div class="card-delta">Use Glenwood as proxy</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Crystal trend (24h)</div>
+        <div class="card-value" id="crystal-trend-val" style="font-size:1.2rem;padding-top:4px">—</div>
+        <div class="card-delta" id="crystal-trend-delta"></div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title" id="chart-title-upper"></div>
+      <div class="chart-legend">
+        <span class="leg-item"><span class="leg-swatch" style="background:#3a7ca5"></span>Roaring Fork @ Emma</span>
+        <span class="leg-item"><span class="leg-swatch" style="background:#8a6a3a"></span>Crystal @ Redstone</span>
+      </div>
+      <div class="chart-inner"><canvas id="rfUpperChart" role="img" aria-label="7-day flow for upper Roaring Fork and Crystal River"></canvas></div>
+      <div class="note">Crystal gauge is above Avalanche Creek near Redstone — understates flow at Carbondale confluence. Rising Crystal = turbidity risk on lower Fork within 2–3 hrs.</div>
+    </div>
+  </section>
+
+  <!-- ── Section 4: Weather ── -->
+  <section class="section" id="wx-section">
+    <div class="section-header">
+      <div class="section-title">Weather</div>
+      <div class="section-sub">Glenwood Springs · NWS Forecast</div>
+    </div>
+    <div id="wx-content">
+      <div class="wx-grid" id="wx-grid"></div>
+      <div class="note" id="wx-note" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- ── Section 5: Hatches ── -->
+  <section class="section" id="hatch-section">
+    <div class="section-header">
+      <div class="section-title">Hatches</div>
+      <div class="section-sub" id="hatch-date-sub"></div>
+    </div>
+    <div class="hatch-grid" id="hatch-grid"></div>
+    <div class="note" style="margin-top:12px">Timing is approximate for the Roaring Fork Valley at ~5,800 ft. Warmer years run 1–2 weeks early; cooler years run late. Water temp accelerates or delays emergence.</div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-sources">
+    <strong>USGS Gauges</strong><br>
+    <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09071750/" target="_blank">09071750</a> CO above Glenwood &nbsp;·&nbsp;
+    <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09085000/" target="_blank">09085000</a> RF at Glenwood<br>
+    <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09085100/" target="_blank">09085100</a> CO below Glenwood &nbsp;·&nbsp;
+    <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09081000/" target="_blank">09081000</a> RF at Emma<br>
+    <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09081600/" target="_blank">09081600</a> Crystal above Avalanche Cr · Redstone
+  </div>
+  <div class="footer-brand">RFV Conditions</div>
+</footer>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function fmtLabel(s) {
+  const mo = s.slice(5,7), dy = s.slice(8,10), hr = parseInt(s.slice(11,13));
+  return mo+'/'+dy+' '+(hr%12||12)+(hr<12?'a':'p');
+}
+
+function delta24h(series) {
+  if (!series || series.length < 2) return null;
+  const latest = series[series.length-1][1];
+  const latestHr = series[series.length-1][0]; // "YYYY-MM-DDTHH" local time
+  const [datePart, hrPart] = latestHr.split('T');
+  const [yr, mo, dy] = datePart.split('-').map(Number);
+  const d = new Date(yr, mo - 1, dy, Number(hrPart)); // local time, no offset ambiguity
+  d.setTime(d.getTime() - 24 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  const target = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}`;
+  const past = series.find(p => p[0] >= target);
+  if (!past) return null;
+  return { latest, past: past[1], diff: latest - past[1], pct: ((latest - past[1])/past[1]*100).toFixed(0) };
+}
+
+function trendArrow(diff) {
+  if (Math.abs(diff) < 5) return '→ Stable';
+  return diff > 0 ? '↑ Rising' : '↓ Falling';
+}
+
+function clarityBadge(fnu) {
+  if (fnu === null) return '';
+  if (fnu < 10) return '<span class="badge badge-green">Fishable</span>';
+  if (fnu < 20) return '<span class="badge badge-amber">Marginal</span>';
+  return '<span class="badge badge-red">Turbid</span>';
+}
+
+// Lower RF floatability
+function rfFloatBadge(cfs) {
+  if (cfs < 150) return '<span class="badge badge-red">Too Low</span>';
+  if (cfs < 350) return '<span class="badge badge-amber">Wadeable / Technical</span>';
+  if (cfs <= 700) return '<span class="badge badge-green">Ideal Float</span>';
+  if (cfs <= 900) return '<span class="badge badge-amber">Pushy</span>';
+  return '<span class="badge badge-red">High Water</span>';
+}
+
+// Upper RF (Emma) — shallower thresholds
+function emmaFloatBadge(cfs) {
+  if (cfs < 100) return '<span class="badge badge-red">Too Low</span>';
+  if (cfs < 250) return '<span class="badge badge-amber">Wadeable / Technical</span>';
+  if (cfs <= 550) return '<span class="badge badge-green">Ideal Float</span>';
+  if (cfs <= 750) return '<span class="badge badge-amber">Pushy</span>';
+  return '<span class="badge badge-red">High Water</span>';
+}
+
+function tempBadge(f) {
+  if (f < 40) return '<span class="badge badge-amber">Cold — Midges</span>';
+  if (f < 50) return '<span class="badge badge-amber">Cool — Nymphing</span>';
+  if (f < 66) return '<span class="badge badge-green">Prime Feeding</span>';
+  if (f < 68) return '<span class="badge badge-amber">Warming</span>';
+  return '<span class="badge badge-red">C&amp;R Stress Risk</span>';
+}
+
+function fmtCfs(v) { return v >= 1000 ? (v/1000).toFixed(1)+'k' : Math.round(v).toString(); }
+function fmtFnu(v) { return v.toFixed(1); }
+
+// ── Hatch Calendar ──────────────────────────────────────────────────────
+// Each hatch: name, detail, peak window [mStart,dStart,mEnd,dEnd], active window (wider)
+// Months are 1-based
+const HATCHES = [
+  { name: 'Midge',           detail: 'Size 20–26 · All day, esp. late morning', active:[1,1,12,31], peak:[11,1,3,31] },
+  { name: 'Blue-Winged Olive', detail: 'Size 18–22 · Overcast days, afternoon', active:[2,15,5,15], peak:[3,15,4,30] },
+  { name: 'Blue-Winged Olive (Fall)', detail: 'Size 18–22 · Overcast, afternoon', active:[9,1,11,15], peak:[9,15,10,31] },
+  { name: 'Caddis',          detail: 'Size 14–18 · Evening, tan & olive',        active:[4,15,8,31], peak:[5,15,7,15] },
+  { name: 'PMD',             detail: 'Size 16–18 · Mid-morning',                 active:[5,15,8,31], peak:[6,1,7,31]  },
+  { name: 'Green Drake',     detail: 'Size 10–12 · Brief — 2 weeks only',        active:[5,25,6,25], peak:[6,1,6,20]  },
+  { name: 'Golden Stonefly', detail: 'Size 6–10 · Early morning',               active:[5,15,7,15], peak:[5,25,6,25] },
+  { name: 'Yellow Sally',    detail: 'Size 14–16 · Afternoon',                   active:[6,1,8,15],  peak:[6,15,7,31] },
+  { name: 'Trico',           detail: 'Size 20–24 · Early morning spinner fall',  active:[7,1,9,30],  peak:[7,15,9,1]  },
+  { name: 'Terrestrials',    detail: 'Ants, beetles, hoppers · Afternoon',       active:[7,1,9,30],  peak:[7,20,9,10] },
+];
+
+function dayOfYear(m, d) { return (new Date(2000, m-1, d) - new Date(2000, 0, 1)) / 86400000; }
+
+function hatchStatus(hatch, mo, dy) {
+  const now = dayOfYear(mo, dy);
+  const aStart = dayOfYear(hatch.active[0], hatch.active[1]);
+  const aEnd   = dayOfYear(hatch.active[2], hatch.active[3]);
+  const pStart = dayOfYear(hatch.peak[0],   hatch.peak[1]);
+  const pEnd   = dayOfYear(hatch.peak[2],   hatch.peak[3]);
+  if (now < aStart - 14 || now > aEnd + 14) return null; // not relevant
+  if (now >= pStart && now <= pEnd)   return 'peak';
+  if (now >= aStart && now <= aEnd)   return 'active';
+  if (now < aStart && now >= aStart - 14) return 'soon';
+  return null;
+}
+
+function renderHatches() {
+  const now = new Date();
+  const mo = now.getMonth() + 1, dy = now.getDate();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  $('hatch-date-sub').textContent = months[mo-1] + ' ' + dy + ' · Roaring Fork Valley';
+
+  const grid = $('hatch-grid');
+  grid.innerHTML = '';
+  let shown = 0;
+  for (const h of HATCHES) {
+    const status = hatchStatus(h, mo, dy);
+    if (!status) continue;
+    const label = status === 'peak' ? 'Peak' : status === 'active' ? 'Active' : 'Starting Soon';
+    grid.innerHTML += `
+      <div class="hatch-card">
+        <div class="hatch-name">${h.name}</div>
+        <div class="hatch-detail">${h.detail}</div>
+        <div class="hatch-status ${status}">${label}</div>
+      </div>`;
+    shown++;
+  }
+  if (shown === 0) {
+    grid.innerHTML = '<div class="note" style="margin:0">No major hatches active — midges and small nymphs.</div>';
+  }
+}
+
+renderHatches();
+
+// ── NWS Weather ─────────────────────────────────────────────────────────
+// Glenwood Springs, CO: 39.5505, -107.3248
+const WX_LAT = 39.5505, WX_LON = -107.3248;
+
+function wxIcon(shortForecast) {
+  const f = shortForecast.toLowerCase();
+  if (f.includes('thunder')) return '⛈';
+  if (f.includes('snow') || f.includes('blizzard')) return '❄️';
+  if (f.includes('rain') || f.includes('showers')) return '🌧';
+  if (f.includes('drizzle') || f.includes('sprinkle')) return '🌦';
+  if (f.includes('cloudy') || f.includes('overcast')) return '☁️';
+  if (f.includes('partly') || f.includes('mostly cloudy')) return '⛅';
+  if (f.includes('fog') || f.includes('haze')) return '🌫';
+  if (f.includes('wind')) return '💨';
+  return '☀️';
+}
+
+
+async function loadWeather() {
+  try {
+    const ptRes = await fetch(`https://api.weather.gov/points/${WX_LAT},${WX_LON}`, {headers:{'User-Agent':'rfv-conditions/1.0'}});
+    if (!ptRes.ok) return;
+    const pt = await ptRes.json();
+
+
+    const fRes = await fetch(pt.properties.forecast, {headers:{'User-Agent':'rfv-conditions/1.0'}});
+    const f = fRes.ok ? await fRes.json() : null;
+
+    // ── Forecast cards ── (renders right away)
+    if (f) {
+      const periods = f.properties.periods.filter(p => p.isDaytime).slice(0, 5);
+      const nights  = f.properties.periods.filter(p => !p.isDaytime).slice(0, 5);
+      const grid = $('wx-grid');
+      grid.innerHTML = '';
+      periods.forEach((p, i) => {
+        const lo = nights[i] ? nights[i].temperature : '—';
+        const precip = p.probabilityOfPrecipitation?.value;
+        const precipStr = (precip !== null && precip !== undefined && precip > 0) ? `${precip}% precip` : '';
+        const dayLabel = i === 0 ? 'Today' : p.name;
+        grid.innerHTML += `
+          <div class="wx-card">
+            <div class="wx-day">${dayLabel}</div>
+            <div class="wx-icon">${wxIcon(p.shortForecast)}</div>
+            <div class="wx-temps">${p.temperature}° <span class="lo">/ ${lo}°</span></div>
+            ${precipStr ? `<div class="wx-precip">${precipStr}</div>` : ''}
+            <div class="wx-desc">${p.shortForecast}</div>
+          </div>`;
+      });
+      const updatedDate = new Date(f.properties.updated);
+      const updated = isNaN(updatedDate) ? null : updatedDate.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      $('wx-note').textContent = updated ? `NWS forecast updated ${updated} · Glenwood Springs ~5,760 ft` : 'Glenwood Springs ~5,760 ft';
+    }
+
+  } catch(e) {
+    console.warn('Weather load failed:', e);
+    $('wx-content').innerHTML = '<div class="note">Weather unavailable</div>';
+  }
+}
+
+function shareConditions() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      const t = $('share-toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    });
+  } else {
+    // Fallback: prompt
+    window.prompt('Copy this link:', url);
+  }
+}
+
+loadWeather();
+
+// Chart defaults
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+  plugins: { legend: { display: false } },
+  elements: { line: { tension: 0.3 } }
+};
+
+function makeXScale() {
+  return { ticks: { autoSkip: true, maxTicksLimit: currentPeriod === 'P30D' ? 10 : 7, font: { size: 10, family: "'DM Mono'" }, color: '#8a8a80' }, grid: { display: false } };
+}
+function makeYScale(label) {
+  return { ticks: { font: { size: 10, family: "'DM Mono'" }, color: '#8a8a80' }, grid: { color: 'rgba(26,26,24,0.07)' }, title: { display: !!label, text: label, font: { size: 9 }, color: '#8a8a80' } };
+}
+
+// ── USGS Fetch ─────────────────────────────────────────────────────────
+const SITES = '09071750,09085000,09085100,09081000,09081600';
+const PARAMS = '00060,63680,00010';
+let currentPeriod = 'P7D';
+const apiUrl = () => `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${SITES}&parameterCd=${PARAMS}&period=${currentPeriod}&siteStatus=all`;
+
+function setPeriod(period, btn) {
+  if (period === currentPeriod) return;
+  currentPeriod = period;
+  document.querySelectorAll('.period-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadData();
+}
+
+// USGS Stats API — daily flow percentiles for RF@Glenwood and RF@Emma
+function statsAPI(site) {
+  return `https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=${site}&parameterCd=00060&statReportType=daily`;
+}
+
+function parseStats(rdbText) {
+  try {
+    const lines = rdbText.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+    if (lines.length < 3) return null;
+    const headers = lines[0].split('\t').map(h => h.trim());
+    // Find today's row by month_nu and day_nu
+    const today = new Date();
+    const mo = String(today.getMonth() + 1);
+    const dy = String(today.getDate());
+    const dataLines = lines.slice(2); // skip header + widths row
+    for (const line of dataLines) {
+      const vals = line.split('\t');
+      const row = Object.fromEntries(headers.map((h, i) => [h, vals[i]?.trim()]));
+      if (row['month_nu'] === mo && row['day_nu'] === dy) {
+        const mean = parseFloat(row['mean_va']);
+        if (isNaN(mean) || mean <= 0) return null;
+        return {
+          mean,
+          p10: parseFloat(row['p10_va']),
+          p25: parseFloat(row['p25_va']),
+          p75: parseFloat(row['p75_va']),
+          p90: parseFloat(row['p90_va']),
+        };
+      }
+    }
+    return null;
+  } catch(e) { return null; }
+}
+
+let charts = {};
+
+async function loadData() {
+  $('refresh-btn').classList.add('loading');
+  $('refresh-btn').textContent = '↺ Loading…';
+
+  try {
+    const [res, statsRfRes, statsEmmaRes, statsCoBRes, statsCrystRes] = await Promise.all([
+      fetch(apiUrl()),
+      fetch(statsAPI('09085000')),
+      fetch(statsAPI('09081000')),
+      fetch(statsAPI('09085100')),
+      fetch(statsAPI('09081600')),
+    ]);
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const [data, statsRfText, statsEmmaText, statsCoBText, statsCrystText] = await Promise.all([
+      res.json(),
+      statsRfRes.ok   ? statsRfRes.text()   : null,
+      statsEmmaRes.ok ? statsEmmaRes.text() : null,
+      statsCoBRes.ok  ? statsCoBRes.text()  : null,
+      statsCrystRes.ok? statsCrystRes.text(): null,
+    ]);
+
+    const tsMap = {};
+    for (const ts of data.value.timeSeries) {
+      const sno = ts.sourceInfo.siteCode[0].value;
+      const pcd = ts.variable.variableCode[0].value;
+      const clean = ts.values[0].value
+        .filter(v => v.value !== '-999999' && v.value !== '')
+        .map(v => [v.dateTime.slice(0,13), parseFloat(v.value)]);
+      tsMap[`${sno}_${pcd}`] = clean;
+    }
+
+    const statsRf    = statsRfText    ? parseStats(statsRfText)    : null;
+    const statsEmma  = statsEmmaText  ? parseStats(statsEmmaText)  : null;
+    const statsCoB   = statsCoBText   ? parseStats(statsCoBText)   : null;
+    const statsCryst = statsCrystText ? parseStats(statsCrystText) : null;
+
+    processAndRender(tsMap, statsRf, statsEmma, statsCoB, statsCryst);
+    $('update-time').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+    $('loading-state').style.display = 'none';
+    $('error-state').style.display = 'none';
+    $('main-content').style.display = 'block';
+
+  } catch(e) {
+    console.error(e);
+    $('loading-state').style.display = 'none';
+    $('error-state').style.display = 'block';
+  }
+
+  $('refresh-btn').classList.remove('loading');
+  $('refresh-btn').textContent = '↺ Refresh';
+}
+
+function pctOfAvg(flow, stats) {
+  if (!stats || !stats.mean || stats.mean === 0) return null;
+  return Math.round(flow / stats.mean * 100);
+}
+
+function percentileLabel(flow, stats) {
+  if (!stats) return null;
+  if (flow <= stats.p10) return '< 10th percentile';
+  if (flow <= stats.p25) return '10–25th percentile';
+  if (flow <= stats.p75) return '25–75th percentile';
+  if (flow <= stats.p90) return '75–90th percentile';
+  return '> 90th percentile';
+}
+
+function processAndRender(tsMap, statsRf, statsEmma, statsCoB, statsCryst) {
+  const coTurb   = tsMap['09071750_63680'] || [];
+  const rfFlow   = tsMap['09085000_00060'] || [];
+  const rfTurb   = tsMap['09085000_63680'] || [];
+  const coBFlow  = tsMap['09085100_00060'] || [];
+  const emmaFlow = tsMap['09081000_00060'] || [];
+  const crystFlow= tsMap['09081600_00060'] || [];
+  const rfTemp   = tsMap['09085000_00010'] || [];
+
+  // Blended turbidity
+  const coTurbMap  = Object.fromEntries(coTurb);
+  const rfFlowMap  = Object.fromEntries(rfFlow);
+  const rfTurbMap  = Object.fromEntries(rfTurb);
+  const coBFlowMap = Object.fromEntries(coBFlow);
+
+  const blendedHours = [...new Set([...Object.keys(coTurbMap), ...Object.keys(rfFlowMap), ...Object.keys(rfTurbMap), ...Object.keys(coBFlowMap)])]
+    .filter(h => coTurbMap[h] && rfFlowMap[h] && rfTurbMap[h] && coBFlowMap[h])
+    .sort();
+
+  const blended = blendedHours.map(h => {
+    const rfQ = rfFlowMap[h], coQ = coBFlowMap[h];
+    const coAboveQ = Math.max(coQ - rfQ, 1);
+    return [h, parseFloat(((coAboveQ * coTurbMap[h] + rfQ * rfTurbMap[h]) / coQ).toFixed(1))];
+  });
+
+  const s = arr => arr; // full hourly resolution
+
+  // ── Latest values ──
+  const latestOf = arr => arr.length ? arr[arr.length-1][1] : null;
+
+  const lvCoTurb   = latestOf(coTurb);
+  const lvRfFlow   = latestOf(rfFlow);
+  const lvRfTurb   = latestOf(rfTurb);
+  const lvCoBFlow  = latestOf(coBFlow);
+  const lvEmma     = latestOf(emmaFlow);
+  const lvCryst    = latestOf(crystFlow);
+  const lvBlended  = blended.length ? blended[blended.length-1][1] : null;
+  const lvImplied  = (lvRfFlow && lvEmma) ? Math.round(lvRfFlow - lvEmma) : null;
+  const lvRfTempC  = latestOf(rfTemp);
+  const lvRfTempF  = lvRfTempC !== null ? Math.round(lvRfTempC * 9/5 + 32) : null;
+
+  // ── Section 1: Colorado ──
+  if (lvBlended !== null) {
+    $('co-blended-val').innerHTML = fmtFnu(lvBlended) + '<span class="unit">FNU</span>';
+    $('co-clarity-badge').innerHTML = clarityBadge(lvBlended);
+  }
+  if (lvCoBFlow !== null) {
+    $('co-flow-val').innerHTML = fmtCfs(lvCoBFlow) + '<span class="unit">cfs</span>';
+    const d = delta24h(coBFlow);
+    const pct = pctOfAvg(lvCoBFlow, statsCoB);
+    const pctLine = pct !== null ? `${pct}% of avg · ${percentileLabel(lvCoBFlow, statsCoB)}` : '';
+    $('co-flow-delta').innerHTML =
+      (d ? `<span class="${d.diff>0?'up':'down'}">${d.diff>0?'↑':'↓'} ${Math.abs(d.diff).toFixed(0)} cfs vs 24h ago</span>` : '') +
+      (pctLine ? `<br><span style="color:var(--ink-3)">${pctLine}</span>` : '');
+  }
+  if (lvCoTurb !== null) $('co-above-turb-val').innerHTML = fmtFnu(lvCoTurb) + '<span class="unit">FNU</span>';
+  if (lvRfTurb !== null) $('rf-turb-co-val').innerHTML = fmtFnu(lvRfTurb) + '<span class="unit">FNU</span>';
+
+  const d24Blended = delta24h(blended);
+  if (d24Blended) {
+    const cls = d24Blended.diff > 0 ? 'up' : 'down';
+    $('co-blended-delta').innerHTML = `<span class="${cls}">${d24Blended.diff>0?'↑':'↓'} ${Math.abs(d24Blended.diff).toFixed(1)} FNU vs 24h ago</span>`;
+  }
+
+  // Warning if blended rising fast
+  if (d24Blended && d24Blended.diff > 5) {
+    $('co-warning').style.display = 'block';
+    $('co-warning').textContent = '⚠ Blended turbidity rising — Colorado conditions degrading';
+  }
+
+  // ── Section 2: RF Lower ──
+  if (lvRfFlow !== null) {
+    $('rf-flow-val').innerHTML = fmtCfs(lvRfFlow) + '<span class="unit">cfs</span>';
+    $('rf-float-badge').innerHTML = rfFloatBadge(lvRfFlow);
+    const d = delta24h(rfFlow);
+    const pct = pctOfAvg(lvRfFlow, statsRf);
+    const pctLine = pct !== null ? `${pct}% of avg · ${percentileLabel(lvRfFlow, statsRf)}` : '';
+    $('rf-flow-delta').innerHTML =
+      (d ? `<span class="${d.diff>0?'up':'down'}">${d.diff>0?'↑':'↓'} ${Math.abs(d.diff).toFixed(0)} cfs vs 24h ago</span>` : '') +
+      (pctLine ? `<br><span style="color:var(--ink-3)">${pctLine}</span>` : '');
+  }
+  if (lvRfTurb !== null) {
+    $('rf-turb-val').innerHTML = fmtFnu(lvRfTurb) + '<span class="unit">FNU</span>';
+    $('rf-clarity-badge').innerHTML = clarityBadge(lvRfTurb);
+    const d = delta24h(rfTurb);
+    if (d) $('rf-turb-delta').innerHTML = `<span class="${d.diff>0?'up':'down'}">${d.diff>0?'↑':'↓'} ${Math.abs(d.diff).toFixed(1)} FNU vs 24h ago</span>`;
+  }
+
+  const rfTrendD = delta24h(rfFlow);
+  if (rfTrendD) {
+    const arrow = trendArrow(rfTrendD.diff);
+    $('rf-trend-val').textContent = arrow.split(' ')[0];
+    $('rf-trend-delta').textContent = arrow.split(' ').slice(1).join(' ') + ` · ${rfTrendD.pct > 0 ? '+' : ''}${rfTrendD.pct}%`;
+  }
+
+  if (lvImplied !== null) $('crystal-implied-val').innerHTML = fmtCfs(lvImplied) + '<span class="unit">cfs</span>';
+  if (lvRfTempF !== null) {
+    $('rf-temp-val').innerHTML = lvRfTempF + '<span class="unit">°F</span>';
+    $('rf-temp-badge').innerHTML = tempBadge(lvRfTempF);
+  }
+
+  // Warning for RF turbidity rising
+  const rfTurbD = delta24h(rfTurb);
+  if (rfTurbD && rfTurbD.diff > 5) {
+    $('rf-warning').style.display = 'block';
+    $('rf-warning').textContent = '⚠ Turbidity rising on the Fork — likely Crystal River input';
+  }
+
+  // ── Section 3: RF Upper ──
+  if (lvEmma !== null) {
+    $('emma-flow-val').innerHTML = fmtCfs(lvEmma) + '<span class="unit">cfs</span>';
+    $('emma-float-badge').innerHTML = emmaFloatBadge(lvEmma);
+    const d = delta24h(emmaFlow);
+    const pct = pctOfAvg(lvEmma, statsEmma);
+    const pctLine = pct !== null ? `${pct}% of avg · ${percentileLabel(lvEmma, statsEmma)}` : '';
+    $('emma-flow-delta').innerHTML =
+      (d ? `<span class="${d.diff>0?'up':'down'}">${d.diff>0?'↑':'↓'} ${Math.abs(d.diff).toFixed(0)} cfs vs 24h ago</span>` : '') +
+      (pctLine ? `<br><span style="color:var(--ink-3)">${pctLine}</span>` : '');
+  }
+  if (lvCryst !== null) {
+    $('crystal-flow-val').innerHTML = fmtCfs(lvCryst) + '<span class="unit">cfs</span>';
+    const d = delta24h(crystFlow);
+    const pct = pctOfAvg(lvCryst, statsCryst);
+    const pctLine = pct !== null ? `${pct}% of avg · ${percentileLabel(lvCryst, statsCryst)}` : '';
+    $('crystal-flow-delta').innerHTML =
+      (d ? `<span class="${d.diff>0?'up':'down'}">${d.diff>0?'↑':'↓'} ${Math.abs(d.diff).toFixed(0)} cfs vs 24h ago</span>` : '') +
+      (pctLine ? `<br><span style="color:var(--ink-3)">${pctLine}</span>` : '');
+  }
+  const crystTrend = delta24h(crystFlow);
+  if (crystTrend) {
+    const arrow = trendArrow(crystTrend.diff);
+    $('crystal-trend-val').textContent = arrow.split(' ')[0];
+    $('crystal-trend-delta').textContent = arrow.split(' ').slice(1).join(' ');
+    if (crystTrend.diff > 20) {
+      $('crystal-trend-val').style.color = 'var(--amber)';
+    }
+  }
+
+  // ── Charts ──
+  const periodLabel = currentPeriod === 'P7D' ? '7-day' : currentPeriod === 'P14D' ? '14-day' : '30-day';
+  $('chart-title-co').textContent    = `${periodLabel} turbidity & flow below Glenwood`;
+  $('chart-title-rf').textContent    = `${periodLabel} flow & turbidity — Glenwood gauge`;
+  $('chart-title-upper').textContent = `${periodLabel} flow — Emma & Crystal @ Redstone`;
+
+  const blendedS  = s(blended);
+  const coTurbS   = s(coTurb);
+  const rfTurbS   = s(rfTurb);
+  const rfFlowS   = s(rfFlow);
+  const emmaS     = s(emmaFlow);
+  const crystS    = s(crystFlow);
+
+  const bLabels = blendedS.map(d => fmtLabel(d[0]));
+  const bMap    = Object.fromEntries(blendedS);
+  const ctMap   = Object.fromEntries(coTurbS);
+  const rtMap   = Object.fromEntries(rfTurbS);
+
+  // Chart 1: CO Turbidity + Flow Below Glenwood (dual axis)
+  const coBFlowS  = s(coBFlow);
+  const coBFlowMap2 = Object.fromEntries(coBFlowS);
+
+  if (charts.coTurb) charts.coTurb.destroy();
+  charts.coTurb = new Chart($('coTurbChart'), {
+    data: {
+      labels: bLabels,
+      datasets: [
+        { type:'line', label:'Flow below Glenwood (cfs)', yAxisID:'y', data: blendedS.map(d=>coBFlowMap2[d[0]]??null),
+          borderColor:'#7a6aaa', backgroundColor:'rgba(122,106,170,0.08)', borderWidth:1.5, pointRadius:0, fill:true },
+        { type:'line', label:'CO above Glenwood (FNU)', yAxisID:'y2', data: blendedS.map(d=>ctMap[d[0]]??null),
+          borderColor:'#3a7ca5', backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,3], pointRadius:0 },
+        { type:'line', label:'Roaring Fork (FNU)', yAxisID:'y2', data: blendedS.map(d=>rtMap[d[0]]??null),
+          borderColor:'#6aaa7a', backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,3], pointRadius:0 },
+        { type:'line', label:'Blended (FNU)', yAxisID:'y2', data: blendedS.map(d=>d[1]),
+          borderColor:'#c0622a', backgroundColor:'transparent', borderWidth:2, borderDash:[5,3], pointRadius:0 }
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: makeXScale(),
+        y: { ...makeYScale('cfs'), position:'left', min:0 },
+        y2: { ...makeYScale('FNU'), position:'right', min:0, grid:{ display:false } }
+      }
+    }
+  });
+
+  // Chart 2: RF Lower — dual axis
+  const rfLabels = rfFlowS.map(d=>fmtLabel(d[0]));
+  const rtMapFull = Object.fromEntries(rfTurbS);
+
+  if (charts.rfLower) charts.rfLower.destroy();
+  charts.rfLower = new Chart($('rfLowerChart'), {
+    data: {
+      labels: rfLabels,
+      datasets: [
+        { type:'line', label:'Flow (cfs)', yAxisID:'y', data: rfFlowS.map(d=>d[1]),
+          borderColor:'#3a7ca5', backgroundColor:'rgba(58,124,165,0.08)', borderWidth:1.5, pointRadius:0, fill:true },
+        { type:'line', label:'Turbidity (FNU)', yAxisID:'y2', data: rfFlowS.map(d=>rtMapFull[d[0]]??null),
+          borderColor:'#c0622a', backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,3], pointRadius:0 }
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: makeXScale(),
+        y: { ...makeYScale('cfs'), position:'left', min:0 },
+        y2: { ...makeYScale('FNU'), position:'right', min:0, grid:{ display:false } }
+      }
+    }
+  });
+
+  // Chart 3: RF Upper
+  const upperLabels = emmaS.map(d=>fmtLabel(d[0]));
+  const crystMap = Object.fromEntries(crystS);
+
+  if (charts.rfUpper) charts.rfUpper.destroy();
+  charts.rfUpper = new Chart($('rfUpperChart'), {
+    data: {
+      labels: upperLabels,
+      datasets: [
+        { type:'line', label:'RF @ Emma', data: emmaS.map(d=>d[1]),
+          borderColor:'#3a7ca5', backgroundColor:'rgba(58,124,165,0.08)', borderWidth:1.5, pointRadius:0, fill:true },
+        { type:'line', label:'Crystal @ Redstone', data: emmaS.map(d=>crystMap[d[0]]??null),
+          borderColor:'#8a6a3a', backgroundColor:'rgba(138,106,58,0.08)', borderWidth:1.5, pointRadius:0, fill:true }
+      ]
+    },
+    options: { ...CHART_DEFAULTS, scales: { x: makeXScale(), y: { ...makeYScale('cfs'), min:0 } } }
+  });
+
+  // ── Summary Bar ──
+  const bar = $('summary-bar');
+  const sumParts = [];
+
+  function sumClass(val, good, warn) {
+    if (val === null) return 'sum-item';
+    return 'sum-item ' + (val <= good ? 'sum-good' : val <= warn ? 'sum-warn' : 'sum-bad');
+  }
+
+  if (lvRfFlow !== null) {
+    const badge = lvRfFlow < 150 ? 'Too Low' : lvRfFlow <= 700 ? 'Good Float' : lvRfFlow <= 900 ? 'Pushy' : 'High Water';
+    const cls   = lvRfFlow < 150 || lvRfFlow > 900 ? 'sum-bad' : lvRfFlow <= 700 ? 'sum-good' : 'sum-warn';
+    sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">RF Flow</span>${fmtCfs(lvRfFlow)} cfs · ${badge}</span>`);
+  }
+  if (lvRfTurb !== null) {
+    const label = lvRfTurb < 10 ? 'Fishable' : lvRfTurb < 20 ? 'Marginal' : 'Turbid';
+    const cls   = lvRfTurb < 10 ? 'sum-good' : lvRfTurb < 20 ? 'sum-warn' : 'sum-bad';
+    sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">Clarity</span>${fmtFnu(lvRfTurb)} FNU · ${label}</span>`);
+  }
+  if (lvRfTempF !== null) {
+    const cls = lvRfTempF >= 50 && lvRfTempF < 66 ? 'sum-good' : lvRfTempF >= 66 ? 'sum-warn' : 'sum-warn';
+    sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">Temp</span>${lvRfTempF}°F</span>`);
+  }
+  if (lvEmma !== null) {
+    sumParts.push(`<span class="sum-item"><span class="sum-label">Emma</span>${fmtCfs(lvEmma)} cfs</span>`);
+  }
+  if (lvCryst !== null) {
+    sumParts.push(`<span class="sum-item"><span class="sum-label">Crystal</span>${fmtCfs(lvCryst)} cfs</span>`);
+  }
+  if (lvBlended !== null) {
+    const label = lvBlended < 10 ? 'Clear' : lvBlended < 20 ? 'Marginal' : 'Turbid';
+    const cls   = lvBlended < 10 ? 'sum-good' : lvBlended < 20 ? 'sum-warn' : 'sum-bad';
+    sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">CO Blended</span>${fmtFnu(lvBlended)} FNU · ${label}</span>`);
+  }
+
+  if (sumParts.length) {
+    bar.innerHTML = sumParts.join('');
+    bar.style.display = 'block';
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+loadData();
+setInterval(loadData, 15 * 60 * 1000);
+</script>
+</body>
+</html>
