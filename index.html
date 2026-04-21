@@ -1096,6 +1096,123 @@
       grid-template-columns: repeat(2, 1fr);
     }
   }
+
+  /* ── Float Badge ── */
+  .float-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    margin-top: 6px;
+    border-radius: 2px;
+  }
+
+  .float-badge.wade {
+    background: var(--paper-3);
+    color: var(--ink-2);
+    border: 1px solid var(--rule);
+  }
+
+  .float-badge.raft {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid var(--amber);
+  }
+
+  .float-badge.good {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green);
+  }
+
+  .float-badge.blown {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+
+  /* ── Hatch Calendar ── */
+  .hatch-now {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .hatch-now-title {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+
+  .hatch-now-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .hatch-now-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    background: var(--paper-3);
+    color: var(--ink);
+  }
+
+  .hatch-now-tag.peak {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .hatch-now-none {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    font-style: italic;
+  }
+
+  /* ── Site Footer ── */
+  .site-footer {
+    text-align: center;
+    padding: 1.5rem 1rem 2rem;
+    border-top: 1px solid var(--rule);
+    margin-top: 2rem;
+  }
+
+  .site-footer-name {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    letter-spacing: .05em;
+    color: var(--ink-2);
+    margin-bottom: 0.5rem;
+  }
+
+  .beer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    padding: 6px 14px;
+    text-decoration: none;
+    transition: background .15s, border-color .15s;
+    margin-top: 6px;
+  }
+
+  .beer-link:hover {
+    background: var(--paper-2);
+    border-color: var(--ink);
+  }
 </style>
 </head>
 <body>
@@ -1282,6 +1399,11 @@
 
     <p style="font-size:0.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:1.25rem; font-weight:500">Spring patterns — mid-March through mid-June · Roaring Fork &amp; Colorado Rivers near Glenwood Springs</p>
 
+    <div class="hatch-now">
+      <div class="hatch-now-title">Active hatches — Roaring Fork River</div>
+      <div id="hatch-now-list" class="hatch-now-list"></div>
+    </div>
+
     <div id="hatch-banner" class="hatch-banner"></div>
 
     <div class="hatch-inner-toggle">
@@ -1387,35 +1509,81 @@ function tempBadge(f) {
 function fmtCfs(v) { return v >= 1000 ? (v/1000).toFixed(1)+'k' : Math.round(v).toString(); }
 function fmtFnu(v) { return v.toFixed(1); }
 
-// ── Hatch Calendar ──────────────────────────────────────────────────────
-// Each hatch: name, detail, peak window [mStart,dStart,mEnd,dEnd], active window (wider)
-// Months are 1-based
-const HATCHES = [
-  { name: 'Midge',           detail: 'Size 20–26 · All day, esp. late morning', active:[1,1,12,31], peak:[11,1,3,31] },
-  { name: 'Blue-Winged Olive', detail: 'Size 18–22 · Overcast days, afternoon', active:[2,15,5,15], peak:[3,15,4,30] },
-  { name: 'Blue-Winged Olive (Fall)', detail: 'Size 18–22 · Overcast, afternoon', active:[9,1,11,15], peak:[9,15,10,31] },
-  { name: 'Caddis',          detail: 'Size 14–18 · Evening, tan & olive',        active:[4,15,8,31], peak:[5,15,7,15] },
-  { name: 'PMD',             detail: 'Size 16–18 · Mid-morning',                 active:[5,15,8,31], peak:[6,1,7,31]  },
-  { name: 'Green Drake',     detail: 'Size 10–12 · Brief — 2 weeks only',        active:[5,25,6,25], peak:[6,1,6,20]  },
-  { name: 'Golden Stonefly', detail: 'Size 6–10 · Early morning',               active:[5,15,7,15], peak:[5,25,6,25] },
-  { name: 'Yellow Sally',    detail: 'Size 14–16 · Afternoon',                   active:[6,1,8,15],  peak:[6,15,7,31] },
-  { name: 'Trico',           detail: 'Size 20–24 · Early morning spinner fall',  active:[7,1,9,30],  peak:[7,15,9,1]  },
-  { name: 'Terrestrials',    detail: 'Ants, beetles, hoppers · Afternoon',       active:[7,1,9,30],  peak:[7,20,9,10] },
+// ── Hatch Calendar — shared data ────────────────────────────────────────
+// Used by both the Conditions tab hatch grid and the Hatch ID tab.
+// Months are 1-based. wrap:true = range crosses Jan 1.
+
+const HATCH_CALENDAR = [
+  { name: 'Midge',
+    detail: 'Size 20–26 · All day, esp. late morning',
+    start: [10,15], end: [4,15], wrap: true  },
+  { name: 'Blue-Winged Olive (Spring)',
+    detail: 'Size 18–22 · Overcast days, afternoon',
+    start: [3,7],   end: [5,15], wrap: false },
+  { name: 'Stonefly (Spring)',
+    detail: 'Size 8–12 · Banks and rocky riffles',
+    start: [3,7],   end: [4,30], wrap: false },
+  { name: 'Red Worm',
+    detail: 'Size 12–14 · Deep nymph rig',
+    start: [4,1],   end: [7,31], wrap: false },
+  { name: 'Caddis (Spring)',
+    detail: 'Size 14–16 · Afternoon, tan & olive',
+    start: [4,15],  end: [5,15], wrap: false },
+  { name: 'Pale Morning Dun',
+    detail: 'Size 16–18 · Mid-morning',
+    start: [6,15],  end: [9,15], wrap: false },
+  { name: 'Green Drake',
+    detail: 'Size 10–12 · Brief — 2 weeks only',
+    start: [6,15],  end: [9,15], wrap: false },
+  { name: 'Caddis (Summer/Fall)',
+    detail: 'Size 14–18 · Evening, tan & olive',
+    start: [6,15],  end: [10,7], wrap: false },
+  { name: 'Stonefly (Summer)',
+    detail: 'Size 6–10 · Early morning',
+    start: [7,1],   end: [9,15], wrap: false },
+  { name: 'Terrestrial',
+    detail: 'Ants, beetles, hoppers · Afternoon',
+    start: [7,1],   end: [10,21], wrap: false },
+  { name: 'Blue-Winged Olive (Fall)',
+    detail: 'Size 18–22 · Overcast, afternoon',
+    start: [9,15],  end: [11,15], wrap: false },
+  { name: 'Egg',
+    detail: 'Size 14–16 · Deep, near tributary mouths',
+    start: [10,1],  end: [4,30], wrap: true  },
 ];
 
-function dayOfYear(m, d) { return (new Date(2000, m-1, d) - new Date(2000, 0, 1)) / 86400000; }
+function isHatchActive(h) {
+  const now = new Date();
+  const m   = now.getMonth() + 1;
+  const d   = now.getDate();
+  const cur = m * 100 + d;
+  const s   = h.start[0] * 100 + h.start[1];
+  const e   = h.end[0]   * 100 + h.end[1];
+  if (h.wrap) return cur >= s || cur <= e;
+  return cur >= s && cur <= e;
+}
 
-function hatchStatus(hatch, mo, dy) {
-  const now = dayOfYear(mo, dy);
-  const aStart = dayOfYear(hatch.active[0], hatch.active[1]);
-  const aEnd   = dayOfYear(hatch.active[2], hatch.active[3]);
-  const pStart = dayOfYear(hatch.peak[0],   hatch.peak[1]);
-  const pEnd   = dayOfYear(hatch.peak[2],   hatch.peak[3]);
-  if (now < aStart - 14 || now > aEnd + 14) return null; // not relevant
-  if (now >= pStart && now <= pEnd)   return 'peak';
-  if (now >= aStart && now <= aEnd)   return 'active';
-  if (now < aStart && now >= aStart - 14) return 'soon';
-  return null;
+function isPeak(h) {
+  const now = new Date();
+  const doy = Math.floor((now -
+    new Date(now.getFullYear(), 0, 0)) / 86400000);
+  const sDate = new Date(now.getFullYear(), h.start[0] - 1, h.start[1]);
+  const eDate = new Date(now.getFullYear(), h.end[0]   - 1, h.end[1]);
+  let sDoy = Math.floor(
+    (sDate - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  let eDoy = Math.floor(
+    (eDate - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  if (h.wrap && eDoy < sDoy) eDoy += 365;
+  const mid = (sDoy + eDoy) / 2;
+  return Math.abs(doy - mid) <= 30;
+}
+
+function isHatchSoon(h) {
+  if (isHatchActive(h)) return false;
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), h.start[0] - 1, h.start[1]);
+  const diff = (startDate - now) / 86400000;
+  return diff > 0 && diff <= 14;
 }
 
 function renderHatches() {
@@ -1427,10 +1595,14 @@ function renderHatches() {
   const grid = $('hatch-grid');
   grid.innerHTML = '';
   let shown = 0;
-  for (const h of HATCHES) {
-    const status = hatchStatus(h, mo, dy);
+  for (const h of HATCH_CALENDAR) {
+    let status = null;
+    if (isHatchActive(h))    status = isPeak(h) ? 'peak' : 'active';
+    else if (isHatchSoon(h)) status = 'soon';
     if (!status) continue;
-    const label = status === 'peak' ? 'Peak' : status === 'active' ? 'Active' : 'Starting Soon';
+    const label = status === 'peak' ? 'Peak'
+                : status === 'active' ? 'Active'
+                : 'Starting Soon';
     grid.innerHTML += `
       <div class="hatch-card">
         <div class="hatch-name">${h.name}</div>
@@ -1728,7 +1900,22 @@ function processAndRender(tsMap, statsRf, statsCoB) {
   // ── Section 2: RF Lower ──
   if (lvRfFlow !== null) {
     $('rf-flow-val').innerHTML = fmtCfs(lvRfFlow) + '<span class="unit">cfs</span>';
-    $('rf-float-badge').innerHTML = rfFloatBadge(lvRfFlow);
+    const floatBadge = document.getElementById('rf-float-badge');
+    if (floatBadge) {
+      if (lvRfFlow >= 3000) {
+        floatBadge.className = 'float-badge blown';
+        floatBadge.textContent = 'Not fishable';
+      } else if (lvRfFlow >= 500) {
+        floatBadge.className = 'float-badge good';
+        floatBadge.textContent = 'Good float — raft & driftboat';
+      } else if (lvRfFlow >= 300) {
+        floatBadge.className = 'float-badge raft';
+        floatBadge.textContent = 'Floatable — raft only';
+      } else {
+        floatBadge.className = 'float-badge wade';
+        floatBadge.textContent = 'Too low to float';
+      }
+    }
     const d = delta24h(rfFlow);
     const pct = pctOfAvg(lvRfFlow, statsRf);
     const pctLine = pct !== null ? `${pct}% of avg · ${percentileLabel(lvRfFlow, statsRf)}` : '';
@@ -1833,8 +2020,8 @@ function processAndRender(tsMap, statsRf, statsCoB) {
   }
 
   if (lvRfFlow !== null) {
-    const badge = lvRfFlow < 150 ? 'Too Low' : lvRfFlow <= 700 ? 'Good Float' : lvRfFlow <= 900 ? 'Pushy' : 'High Water';
-    const cls   = lvRfFlow < 150 || lvRfFlow > 900 ? 'sum-bad' : lvRfFlow <= 700 ? 'sum-good' : 'sum-warn';
+    const badge = lvRfFlow >= 3000 ? 'Not fishable' : lvRfFlow >= 500 ? 'Good float — raft & driftboat' : lvRfFlow >= 300 ? 'Floatable — raft only' : 'Too low to float';
+    const cls   = lvRfFlow >= 3000 ? 'sum-bad' : lvRfFlow >= 500 ? 'sum-good' : lvRfFlow >= 300 ? 'sum-warn' : 'sum-bad';
     sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">RF Flow</span>${fmtCfs(lvRfFlow)} cfs · ${badge}</span>`);
   }
   if (lvRfTurb !== null) {
@@ -2981,6 +3168,31 @@ document.addEventListener('DOMContentLoaded', () => {
   showReg('rf-lower');
 });
 
+// ── Hatch Now (Hatch ID tab) ─────────────────────────────────────────
+// HATCH_CALENDAR, isHatchActive, isPeak defined earlier in the file.
+
+function renderHatchNow() {
+  const el = document.getElementById('hatch-now-list');
+  if (!el) return;
+  const active = HATCH_CALENDAR.filter(isHatchActive);
+  if (active.length === 0) {
+    el.innerHTML =
+      '<span class="hatch-now-none">' +
+      'No major hatches active</span>';
+    return;
+  }
+  el.innerHTML = active.map(h => {
+    const peak = isPeak(h);
+    return '<span class="hatch-now-tag '
+         + (peak ? 'peak' : '') + '">'
+         + h.name
+         + (peak ? ' ★' : '')
+         + '</span>';
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', renderHatchNow);
+
 // ── Regulations Data ──────────────────────────────────────────────────
 const REGS = {
   'rf-upper': {
@@ -3092,5 +3304,10 @@ function showReg(key) {
   `;
 }
 </script>
+
+<div class="site-footer">
+  <div class="site-footer-name">Built by Kush</div>
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="kushlife" data-color="#FFDD00" data-emoji="🍺" data-font="Cookie" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
+</div>
 </body>
 </html>
