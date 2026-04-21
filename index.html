@@ -775,6 +775,327 @@
       grid-template-columns: repeat(2, 1fr);
     }
   }
+
+  /* ── Hatch ID Tab ── */
+  .hatch-wrap {
+    padding: 1.5rem;
+    max-width: 680px;
+  }
+
+  .hatch-banner {
+    display: none;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid;
+  }
+
+  .hatch-banner.good {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .hatch-banner.marginal {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+
+  .hatch-banner.poor {
+    background: var(--red-bg);
+    color: var(--red);
+    border-color: var(--red);
+  }
+
+  .hatch-banner.cold {
+    background: var(--paper-3);
+    color: var(--ink-2);
+    border-color: var(--ink-3);
+  }
+
+  .hatch-inner-toggle {
+    display: flex;
+    border: 1px solid var(--ink);
+    margin-bottom: 1.5rem;
+  }
+
+  .hatch-inner-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--ink);
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+    letter-spacing: .05em;
+    color: var(--ink);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity .15s, background .15s;
+  }
+
+  .hatch-inner-btn:last-child {
+    border-right: none;
+  }
+
+  .hatch-inner-btn:hover { opacity: 0.7; }
+
+  .hatch-inner-btn.active {
+    opacity: 1;
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .hatch-tree-panel { display: block; }
+  .hatch-tree-panel.hidden { display: none; }
+
+  /* Question box */
+  .h-q-box {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .h-step-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+
+  .h-q-text {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    letter-spacing: .03em;
+    margin-bottom: .75rem;
+    line-height: 1.2;
+  }
+
+  .h-btn-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .h-btn {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 10px 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: background .15s, border-color .15s;
+    line-height: 1.4;
+  }
+
+  .h-btn:hover {
+    background: var(--paper-3);
+    border-color: var(--ink);
+  }
+
+  .h-btn:active { opacity: 0.8; }
+
+  /* Breadcrumb */
+  .h-crumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    margin-bottom: .75rem;
+    min-height: 20px;
+  }
+
+  .h-crumb-item {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+  }
+
+  .h-crumb-sep {
+    font-size: 0.72rem;
+    color: var(--rule);
+  }
+
+  .h-reset {
+    font-size: 0.72rem;
+    color: var(--river);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    font-family: var(--font-body);
+  }
+
+  /* Result card */
+  .h-result {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--ink);
+    background: var(--paper-2);
+    padding: 1.1rem 1.25rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .h-result.dry { border-left-color: var(--river); }
+  .h-result.nymph { border-left-color: var(--green); }
+  .h-result.caution { border-left-color: var(--amber); }
+
+  .h-result-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+    letter-spacing: .03em;
+    line-height: 1.1;
+    margin-bottom: 3px;
+  }
+
+  .h-result-sub {
+    font-size: 0.72rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: .85rem;
+  }
+
+  .h-tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: .85rem;
+  }
+
+  .h-tag {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    padding: 3px 9px;
+    border: 1px solid var(--rule);
+    background: var(--paper-3);
+    color: var(--ink-2);
+  }
+
+  .h-prop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-bottom: .85rem;
+  }
+
+  .h-prop {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .h-prop-label {
+    color: var(--ink-3);
+    font-size: 0.65rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .h-prop-val {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* Rig card */
+  .h-rig {
+    background: var(--paper-3);
+    border: 1px solid var(--rule);
+    padding: 10px 14px;
+    margin-bottom: .75rem;
+  }
+
+  .h-rig-label {
+    font-size: 0.65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .h-rig-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+  }
+
+  .h-rig-role {
+    font-size: 0.65rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    min-width: 52px;
+    flex-shrink: 0;
+  }
+
+  .h-rig-fly {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .h-rig-spacing {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .h-pattern-list {
+    font-size: 0.85rem;
+    margin-bottom: .75rem;
+  }
+
+  .h-pattern-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .h-pattern-row:last-child { border-bottom: none; }
+
+  .h-pattern-name {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .h-pattern-size {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  .h-condition {
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    border-top: 1px solid var(--rule);
+    padding-top: .6rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    .hatch-wrap { padding: 1rem; }
+    .h-prop-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
 </style>
 </head>
 <body>
@@ -801,6 +1122,7 @@
 <nav class="tab-nav">
   <button class="tab-btn active" data-tab="conditions">Conditions</button>
   <button class="tab-btn" data-tab="regs">Regulations</button>
+  <button class="tab-btn" data-tab="hatch">Hatch ID</button>
 </nav>
 
 <div id="share-toast">Link copied</div>
@@ -848,8 +1170,6 @@
       <div class="chart-title" id="chart-title-co"></div>
       <div class="chart-legend">
         <span class="leg-item"><span class="leg-swatch" style="background:#7a6aaa"></span>Flow below Glenwood (cfs)</span>
-        <span class="leg-item"><span class="leg-swatch dashed" style="color:#3a7ca5;width:14px"></span>CO above Glenwood (FNU)</span>
-        <span class="leg-item"><span class="leg-swatch dashed" style="color:#6aaa7a;width:14px"></span>Roaring Fork (FNU)</span>
         <span class="leg-item"><span class="leg-swatch dashed" style="color:#c0622a;width:14px"></span>Blended (FNU)</span>
       </div>
       <div class="chart-inner"><canvas id="coTurbChart" role="img" aria-label="7-day turbidity trends and flow for Colorado River section"></canvas></div>
@@ -882,11 +1202,6 @@
         <div class="card-label">Trend (24h)</div>
         <div class="card-value" id="rf-trend-val" style="font-size:1.2rem;padding-top:4px">—</div>
         <div class="card-delta" id="rf-trend-delta"></div>
-      </div>
-      <div class="card">
-        <div class="card-label">Glenwood − Emma (est.)</div>
-        <div class="card-value" id="crystal-implied-val">—</div>
-        <div class="card-delta">Crystal + tribs input</div>
       </div>
       <div class="card">
         <div class="card-label">Water Temp @ Glenwood</div>
@@ -943,7 +1258,7 @@
       <select id="regs-select" onchange="showReg(this.value)">
         <option value="">— Choose a water —</option>
         <option value="rf-upper">Roaring Fork — McFarlane Cr. to Woody Creek Bridge</option>
-        <option value="rf-lower">Roaring Fork — Woody Creek Bridge to Colorado River</option>
+        <option value="rf-lower" selected>Roaring Fork — Woody Creek Bridge to Colorado River</option>
         <option value="co-glenwood">Colorado River — Glenwood Canyon to Rifle</option>
         <option value="fryingpan">Fryingpan River — Ruedi Dam to Roaring Fork</option>
         <option value="crystal">Crystal River</option>
@@ -961,6 +1276,39 @@
     </div>
   </div>
 </div><!-- /tab-regs -->
+
+<div id="tab-hatch" class="tab-panel" style="display:none">
+  <div class="hatch-wrap">
+
+    <p style="font-size:0.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:1.25rem; font-weight:500">Spring patterns — mid-March through mid-June · Roaring Fork &amp; Colorado Rivers near Glenwood Springs</p>
+
+    <div id="hatch-banner" class="hatch-banner"></div>
+
+    <div class="hatch-inner-toggle">
+      <button class="hatch-inner-btn active"
+              data-tree="dry"
+              onclick="switchTree('dry')">
+        Dry Flies
+      </button>
+      <button class="hatch-inner-btn"
+              data-tree="nymph"
+              onclick="switchTree('nymph')">
+        Nymphs
+      </button>
+    </div>
+
+    <div id="hatch-tree-dry" class="hatch-tree-panel">
+      <div id="dry-crumb" class="h-crumb"></div>
+      <div id="dry-tree"></div>
+    </div>
+
+    <div id="hatch-tree-nymph" class="hatch-tree-panel hidden">
+      <div id="nymph-crumb" class="h-crumb"></div>
+      <div id="nymph-tree"></div>
+    </div>
+
+  </div>
+</div><!-- /tab-hatch -->
 
 <footer>
   <div class="footer-sources">
@@ -1508,6 +1856,8 @@ function processAndRender(tsMap, statsRf, statsCoB) {
     bar.innerHTML = sumParts.join('');
     bar.style.display = 'block';
   }
+
+  updateHatchBanner(lvRfTempF, lvRfTurb);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
@@ -1525,6 +1875,1110 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab)
       .style.display = 'block';
   });
+});
+
+// ── Hatch ID ──────────────────────────────────────────────────────────
+
+// ── Conditions banner ──
+// Called from processAndRender() after live data is set.
+// Reads the already-computed lvRfTempF and lvRfTurb globals.
+
+function updateHatchBanner(lvRfTempF, lvRfTurb) {
+  const banner = document.getElementById('hatch-banner');
+  if (!banner) return;
+
+  // Need at least temp or turbidity to show a banner
+  const hasTemp  = typeof lvRfTempF !== 'undefined'
+                   && lvRfTempF !== null;
+  const hasTurb  = typeof lvRfTurb  !== 'undefined'
+                   && lvRfTurb  !== null;
+
+  if (!hasTemp && !hasTurb) {
+    banner.style.display = 'none';
+    return;
+  }
+
+  let cls = 'good';
+  let msg = '';
+
+  // Turbidity overrides temp — off-color water is the
+  // hardest stop regardless of temperature
+  if (hasTurb && lvRfTurb >= 20) {
+    cls = 'poor';
+    msg = '⚠ Turbidity high (' + lvRfTurb.toFixed(1)
+        + ' FNU) — water off-color. Dry fly activity '
+        + 'unlikely. Switch to nymph rig, fish deep.';
+  } else if (hasTurb && lvRfTurb >= 10) {
+    cls = 'marginal';
+    msg = '~ Turbidity marginal (' + lvRfTurb.toFixed(1)
+        + ' FNU) — dry fly possible in clearer sections. '
+        + 'Nymphing more reliable.';
+  } else if (hasTemp && lvRfTempF < 45) {
+    cls = 'cold';
+    msg = '❄ Water cold (' + lvRfTempF
+        + '°F) — midges and nymphs only. '
+        + 'No surface activity expected until temp rises.';
+  } else if (hasTemp && lvRfTempF >= 45
+             && lvRfTempF < 50) {
+    cls = 'marginal';
+    msg = '~ Water warming (' + lvRfTempF
+        + '°F) — midge hatches possible. '
+        + 'BWOs unlikely until temp reaches 50°F+.';
+  } else if (hasTemp && lvRfTempF >= 50) {
+    cls = 'good';
+    msg = '✓ Good hatch conditions (' + lvRfTempF
+        + '°F'
+        + (hasTurb
+          ? ', ' + lvRfTurb.toFixed(1) + ' FNU'
+          : '')
+        + ') — BWO and midge hatches likely. '
+        + 'Watch for rising fish midday.';
+  } else {
+    banner.style.display = 'none';
+    return;
+  }
+
+  banner.className = 'hatch-banner ' + cls;
+  banner.textContent = msg;
+  banner.style.display = 'block';
+}
+
+// ── Inner tree toggle ──
+function switchTree(tree) {
+  document.querySelectorAll('.hatch-inner-btn')
+    .forEach(b => b.classList.toggle(
+      'active', b.dataset.tree === tree));
+  document.getElementById('hatch-tree-dry')
+    .classList.toggle('hidden', tree !== 'dry');
+  document.getElementById('hatch-tree-nymph')
+    .classList.toggle('hidden', tree !== 'nymph');
+}
+
+// ── DRY FLY TREE ──────────────────────────────────────
+
+const DRY_DATA = {
+  q1: {
+    label: 'Step 1 of 3',
+    text: 'How big is the bug on the water?',
+    opts: [
+      { label: 'Tiny — barely visible, like pepper specks',
+        val: 'tiny' },
+      { label: 'Small — pencil-tip size, slender olive body',
+        val: 'small' },
+      { label: 'Medium — fingernail size, tan or brown',
+        val: 'medium' },
+      { label: 'Large — dime size or bigger, flat wings',
+        val: 'large' }
+    ]
+  },
+  q2_tiny: {
+    label: 'Step 2 of 3',
+    text: 'What does it look like up close?',
+    opts: [
+      { label: 'Mosquito-like, not biting, swarms above water',
+        val: 'midge' },
+      { label: 'Tiny sailboat wings upright, olive body',
+        val: 'bwo_small' }
+    ]
+  },
+  q2_small: {
+    label: 'Step 2 of 3',
+    text: 'What do the wings look like at rest on the water?',
+    opts: [
+      { label: 'Stand straight up like a sail — two tails visible',
+        val: 'bwo' },
+      { label: 'Fold flat like a tent, hairy texture',
+        val: 'caddis_small' }
+    ]
+  },
+  q2_medium: {
+    label: 'Step 2 of 3',
+    text: 'Color and behavior?',
+    opts: [
+      { label: 'Tan/brown, tent wings, flutters and skitters',
+        val: 'caddis' },
+      { label: 'Pale olive, wings upright, drifts calmly',
+        val: 'bwo_lg' }
+    ]
+  },
+  q2_large: {
+    label: 'Step 2 of 3',
+    text: 'What does it look like?',
+    opts: [
+      { label: 'Flat wings over body like a cockroach, '
+             + 'olive/brown, crawling on rocks',
+        val: 'skwala' },
+      { label: 'Similar but wings more upright, '
+             + 'orange-yellow body',
+        val: 'not_spring' }
+    ]
+  },
+  q3_midge: {
+    label: 'Step 3 of 3',
+    text: 'How are the fish rising?',
+    opts: [
+      { label: 'Subtle sipping rings, barely moving',
+        val: 'midge_cluster' },
+      { label: 'Steady dimples in flat calm water',
+        val: 'midge_emerger' }
+    ]
+  },
+  q3_bwo: {
+    label: 'Step 3 of 3',
+    text: 'Current conditions?',
+    opts: [
+      { label: 'Overcast, gray sky, light rain possible',
+        val: 'bwo_classic' },
+      { label: 'Sunny or mixed, fish sipping in flat water',
+        val: 'bwo_flat' }
+    ]
+  },
+  q3_skwala: {
+    label: 'Step 3 of 3',
+    text: 'Where are the fish rising?',
+    opts: [
+      { label: 'Along banks, near rocks and wood',
+        val: 'skwala_bank' },
+      { label: 'Open mid-current',
+        val: 'skwala_mid' }
+    ]
+  },
+  q3_caddis: {
+    label: 'Step 3 of 3',
+    text: 'How are fish reacting?',
+    opts: [
+      { label: 'Splashy, aggressive — chasing something moving',
+        val: 'caddis_active' },
+      { label: 'Quieter, taking something in the film',
+        val: 'caddis_film' }
+    ]
+  }
+};
+
+const DRY_FLOW = {
+  tiny: 'q2_tiny', small: 'q2_small',
+  medium: 'q2_medium', large: 'q2_large',
+  midge: 'q3_midge', bwo: 'q3_bwo',
+  bwo_small: 'q3_bwo', bwo_lg: 'q3_bwo',
+  skwala: 'q3_skwala', caddis: 'q3_caddis',
+  caddis_small: 'q3_caddis', not_spring: null
+};
+
+const DRY_RESULTS = {
+  midge_cluster: {
+    type: 'dry', name: 'Midge cluster',
+    sub: 'Chironomidae — surface film',
+    tags: ['#20–22', 'All spring', 'Calm water'],
+    props: [
+      ['Wing shape', 'Flat/low, tiny'],
+      ['Body', 'Gray / black / olive'],
+      ['Rise form', 'Subtle sip'],
+      ['Best time', 'Morning']
+    ],
+    patterns: [
+      { name: 'Griffith\'s Gnat', size: '#20–22' },
+      { name: 'Sprout Midge', size: '#20–22' },
+      { name: 'Antonio\'s Hi-Vis Midge', size: '#22–24' }
+    ],
+    condition: 'Fish keying on clusters in the film. '
+             + 'Dead drift only — any drag = refusal.'
+  },
+  midge_emerger: {
+    type: 'dry', name: 'Midge emerger',
+    sub: 'Chironomidae — transitioning to surface',
+    tags: ['#22–24', 'All spring', 'Film'],
+    props: [
+      ['Wing shape', 'Flat/low, tiny'],
+      ['Body', 'Gray / black / olive'],
+      ['Rise form', 'Subtle dimple'],
+      ['Best time', 'All day']
+    ],
+    patterns: [
+      { name: 'Dorsey\'s Midge Emerger', size: '#22–24' },
+      { name: 'McCannel\'s Massacre Midge', size: '#22–24' },
+      { name: 'RS2 (gray)', size: '#20–22' }
+    ],
+    condition: 'Fish just below the film. '
+             + 'Try dry-dropper: surface midge + RS2 below.'
+  },
+  bwo_classic: {
+    type: 'dry', name: 'Blue-Winged Olive',
+    sub: 'Baetis — classic hatch conditions',
+    tags: ['#18–20', 'March–May', 'Overcast'],
+    props: [
+      ['Wing shape', 'Upright sail, gray'],
+      ['Body', 'Olive'],
+      ['Rise form', 'Steady, deliberate'],
+      ['Best time', 'Midday–afternoon']
+    ],
+    patterns: [
+      { name: 'Parachute BWO', size: '#18–20' },
+      { name: 'Sparkle Dun', size: '#18–20' },
+      { name: 'Vis-A-Dun', size: '#18–20' }
+    ],
+    condition: 'Overcast + cold + light rain = best BWO hatch. '
+             + 'Dead drift in feeding lanes.'
+  },
+  bwo_flat: {
+    type: 'dry', name: 'BWO — flat water',
+    sub: 'Baetis — technical presentation',
+    tags: ['#20–22', 'March–May', 'Technical'],
+    props: [
+      ['Wing shape', 'Upright sail, gray'],
+      ['Body', 'Olive'],
+      ['Rise form', 'Sipping, picky'],
+      ['Tippet', '6x or 7x']
+    ],
+    patterns: [
+      { name: 'CDC Comparadun', size: '#20' },
+      { name: 'Sparkle Dun', size: '#20–22' },
+      { name: 'Barr\'s Emerger', size: '#18–20' }
+    ],
+    condition: 'Drop to 7x tippet. Check drift before '
+             + 'changing flies — drag kills more than '
+             + 'wrong pattern.'
+  },
+  bwo_small: {
+    type: 'dry', name: 'Blue-Winged Olive',
+    sub: 'Baetis — small profile',
+    tags: ['#20–22', 'March–May'],
+    props: [
+      ['Wing shape', 'Upright sail, gray'],
+      ['Body', 'Olive'],
+      ['Rise form', 'Sipping'],
+      ['Size note', 'Spring runs larger than fall']
+    ],
+    patterns: [
+      { name: 'Parachute BWO', size: '#20' },
+      { name: 'Vis-A-Dun', size: '#20' },
+      { name: 'CDC Comparadun', size: '#20–22' }
+    ],
+    condition: 'Spring BWOs on the Fork run #18–20. '
+             + 'If they look smaller, size down to #20–22.'
+  },
+  bwo_lg: {
+    type: 'dry', name: 'Blue-Winged Olive',
+    sub: 'Baetis — larger profile',
+    tags: ['#18–20', 'March–May'],
+    props: [
+      ['Wing shape', 'Upright sail'],
+      ['Body', 'Pale olive'],
+      ['Rise form', 'Deliberate'],
+      ['Watch for', 'Early PMD late April']
+    ],
+    patterns: [
+      { name: 'Parachute BWO', size: '#18–20' },
+      { name: 'Sparkle Dun', size: '#18–20' },
+      { name: 'Vis-A-Dun', size: '#18–20' }
+    ],
+    condition: 'If body looks pinkish-tan rather than '
+             + 'olive in late April–May, lean toward PMD.'
+  },
+  skwala_bank: {
+    type: 'dry', name: 'Skwala stonefly',
+    sub: 'Skwala — bank feeders',
+    tags: ['#8–10', 'Late Feb–April', 'Banks'],
+    props: [
+      ['Wing shape', 'Flat over body'],
+      ['Body', 'Olive / brown'],
+      ['Rise form', 'Aggressive, splashy'],
+      ['Look for', 'Shucks on rocks']
+    ],
+    patterns: [
+      { name: 'Club Sandwich', size: '#8–10' },
+      { name: 'Skwala Adult', size: '#8–10' },
+      { name: 'Chubby Chernobyl (olive)', size: '#8' }
+    ],
+    condition: 'Fish tight to bank — Skwalas crawl out '
+             + 'to hatch and return to lay eggs. '
+             + 'Don\'t wade through the bank zone.'
+  },
+  skwala_mid: {
+    type: 'dry', name: 'Skwala — mid-current',
+    sub: 'Skwala — blown off banks',
+    tags: ['#8–10', 'Late Feb–April'],
+    props: [
+      ['Wing shape', 'Flat over body'],
+      ['Body', 'Olive / brown'],
+      ['Rise form', 'Aggressive'],
+      ['Note', 'Blown off banks']
+    ],
+    patterns: [
+      { name: 'Club Sandwich', size: '#8–10' },
+      { name: 'Skwala Adult', size: '#8–10' }
+    ],
+    condition: 'Likely blown off the bank. Fish the '
+             + 'same pattern — fish are opportunistic '
+             + 'when a Skwala hits mid-river.'
+  },
+  caddis_active: {
+    type: 'dry', name: 'Early caddis — active',
+    sub: 'Rhyacophila — lower Fork',
+    tags: ['#14–16', 'Late March–April', 'Lower Fork'],
+    props: [
+      ['Wing shape', 'Tent / folded, hairy'],
+      ['Body', 'Brown / tan'],
+      ['Rise form', 'Splashy, chasing'],
+      ['Best time', 'Afternoon']
+    ],
+    patterns: [
+      { name: 'Elk Hair Caddis', size: '#14–16' },
+      { name: 'Puterbaugh Caddis', size: '#14–16' },
+      { name: 'X-Caddis', size: '#14–16' }
+    ],
+    condition: 'Fish are chasing — try a slight skitter '
+             + 'across current. Lower Fork gets early '
+             + 'caddis before most other rivers.'
+  },
+  caddis_film: {
+    type: 'dry', name: 'Caddis emerger',
+    sub: 'Rhyacophila — emerging pupa',
+    tags: ['#14–16', 'Late March–April'],
+    props: [
+      ['Wing shape', 'Tent / folded, hairy'],
+      ['Body', 'Brown / tan'],
+      ['Rise form', 'Quieter'],
+      ['Stage', 'Emerging pupa']
+    ],
+    patterns: [
+      { name: 'X-Caddis', size: '#14–16' },
+      { name: 'Elk Hair Caddis', size: '#14–16' }
+    ],
+    condition: 'Fish may be taking pupa just under the '
+             + 'film. X-Caddis trailing shuck suggests '
+             + 'an emerger — try it first.'
+  },
+  not_spring: {
+    type: 'caution', name: 'Not a spring hatch',
+    sub: 'Summer bug — wrong season',
+    tags: ['Summer', 'Post-runoff'],
+    props: [
+      ['Likely', 'Golden stonefly or Salmonfly'],
+      ['Season', 'May–July post-runoff'],
+      ['Action', 'Switch to nymphs']
+    ],
+    patterns: [
+      { name: 'Nymph rig recommended', size: '—' },
+      { name: 'Check again post-runoff', size: 'Jun–Jul' }
+    ],
+    condition: 'Orange-yellow large stoneflies are summer '
+             + 'bugs. Nymph is your best bet until '
+             + 'runoff clears in late June.'
+  }
+};
+
+// ── NYMPH TREE ────────────────────────────────────────
+
+const NYMPH_DATA = {
+  q1: {
+    label: 'Step 1 of 3',
+    text: 'What type of water are you fishing?',
+    opts: [
+      { label: 'Deep runs and pools — more than 3 feet',
+        val: 'deep' },
+      { label: 'Riffles and pocket water — 1 to 3 feet',
+        val: 'riffle' },
+      { label: 'Slow flats and tailouts',
+        val: 'flat' }
+    ]
+  },
+  q2_deep: {
+    label: 'Step 2 of 3',
+    text: 'What is the water clarity like?',
+    opts: [
+      { label: 'Clear to slightly off-color — can see bottom',
+        val: 'deep_clear' },
+      { label: 'Turbid or off-color — visibility less than 2 feet',
+        val: 'deep_dirty' }
+    ]
+  },
+  q2_riffle: {
+    label: 'Step 2 of 3',
+    text: 'Are you seeing any surface activity or hatching bugs?',
+    opts: [
+      { label: 'Yes — bugs in the air or fish rising nearby',
+        val: 'riffle_hatch' },
+      { label: 'No surface activity — blind nymphing',
+        val: 'riffle_blind' }
+    ]
+  },
+  q2_flat: {
+    label: 'Step 2 of 3',
+    text: 'What time of day is it?',
+    opts: [
+      { label: 'Morning — before 10am',
+        val: 'flat_morning' },
+      { label: 'Midday or afternoon',
+        val: 'flat_mid' }
+    ]
+  },
+  q3_deep_clear: {
+    label: 'Step 3 of 3',
+    text: 'What season phase are we in?',
+    opts: [
+      { label: 'Early spring — cold water, before runoff',
+        val: 'deep_clear_early' },
+      { label: 'Pre-runoff — flows rising, April',
+        val: 'deep_clear_pre' }
+    ]
+  },
+  q3_deep_dirty: {
+    label: 'Step 3 of 3',
+    text: 'How off-color is the water?',
+    opts: [
+      { label: 'Slightly stained — tea colored, 1–2 ft visibility',
+        val: 'deep_dirty_stained' },
+      { label: 'Blown out — chocolate milk, under 1 ft visibility',
+        val: 'deep_dirty_blown' }
+    ]
+  },
+  q3_riffle_hatch: {
+    label: 'Step 3 of 3',
+    text: 'What bug are you seeing?',
+    opts: [
+      { label: 'Small olive/gray — likely BWO or midge',
+        val: 'riffle_bwo' },
+      { label: 'Large olive/brown flat-winged bug — Skwala',
+        val: 'riffle_skwala' },
+      { label: 'Not sure',
+        val: 'riffle_unsure' }
+    ]
+  },
+  q3_riffle_blind: {
+    label: 'Step 3 of 3',
+    text: 'Water temperature?',
+    opts: [
+      { label: 'Cold — under 48°F',
+        val: 'riffle_cold' },
+      { label: 'Warming — 48°F and above',
+        val: 'riffle_warm' }
+    ]
+  },
+  q3_flat_morning: {
+    label: 'Step 3 of 3',
+    text: 'How deep is the flat?',
+    opts: [
+      { label: 'Shallow — under 2 feet, slow current',
+        val: 'flat_shallow' },
+      { label: 'Deeper flat — 2 to 4 feet',
+        val: 'flat_deep' }
+    ]
+  },
+  q3_flat_mid: {
+    label: 'Step 3 of 3',
+    text: 'Are fish showing in the flat?',
+    opts: [
+      { label: 'Yes — subtle rises or noses',
+        val: 'flat_rising' },
+      { label: 'No visible fish — searching',
+        val: 'flat_searching' }
+    ]
+  }
+};
+
+const NYMPH_FLOW = {
+  deep: 'q2_deep', riffle: 'q2_riffle', flat: 'q2_flat',
+  deep_clear: 'q3_deep_clear', deep_dirty: 'q3_deep_dirty',
+  riffle_hatch: 'q3_riffle_hatch',
+  riffle_blind: 'q3_riffle_blind',
+  flat_morning: 'q3_flat_morning', flat_mid: 'q3_flat_mid'
+};
+
+const NYMPH_RESULTS = {
+
+  deep_clear_early: {
+    type: 'nymph',
+    name: 'Deep run — early spring',
+    sub: 'Cold clear water, pre-hatch',
+    tags: ['Deep', 'Cold water', 'Heavy rig'],
+    props: [
+      ['Depth', '3–6 feet'],
+      ['Method', 'Indicator nymphing'],
+      ['Drift', 'Dead drift, ticking bottom'],
+      ['Indicator', '1.5x water depth']
+    ],
+    rig: {
+      lead:    { name: "Pat's Rubber Legs",
+                 size: '#10–12 (brown or olive)' },
+      dropper: { name: 'RS2',
+                 size: '#20–22 (gray)' },
+      spacing: '16–18" between flies. ' +
+               'Add split shot 8" above lead fly. ' +
+               'Indicator set at 1.5x water depth.'
+    },
+    alts: [
+      { name: 'Copper John', size: '#18',
+        replaces: 'lead' },
+      { name: "Hare's Ear", size: '#14–16',
+        replaces: 'dropper' }
+    ],
+    condition: 'Fish are lethargic in cold water — ' +
+               'slow drift, get to the bottom. ' +
+               'Tight line if fishing pocket water.'
+  },
+
+  deep_clear_pre: {
+    type: 'nymph',
+    name: 'Deep run — pre-runoff',
+    sub: 'Rising flows, April, fish moving to banks',
+    tags: ['Deep', 'Rising flows', 'April'],
+    props: [
+      ['Depth', '3–5 feet'],
+      ['Method', 'Indicator or euro'],
+      ['Drift', 'Dead drift'],
+      ['Key', 'Fish moving to banks']
+    ],
+    rig: {
+      lead:    { name: "Pat's Rubber Legs",
+                 size: '#10–12 (brown or olive)' },
+      dropper: { name: "Barr's Emerger",
+                 size: '#18–20' },
+      spacing: '16" between flies. ' +
+               'Fish tight to banks as flows rise — ' +
+               'trout move shallow to feed on ' +
+               'dislodged bugs.'
+    },
+    alts: [
+      { name: 'Pheasant Tail', size: '#16–18',
+        replaces: 'dropper' },
+      { name: 'Copper John', size: '#18',
+        replaces: 'lead' }
+    ],
+    condition: 'Pre-runoff fish are aggressive and ' +
+               'moving. Bank seams and current edges ' +
+               'are most productive.'
+  },
+
+  deep_dirty_stained: {
+    type: 'nymph',
+    name: 'Stained water rig',
+    sub: 'Off-color — visibility 1–2 feet',
+    tags: ['Off-color', 'High contrast', 'Attractor'],
+    props: [
+      ['Visibility', '1–2 feet'],
+      ['Strategy', 'High contrast patterns'],
+      ['Depth', 'Deeper than normal'],
+      ['Tip', 'Slow the drift down']
+    ],
+    rig: {
+      lead:    { name: 'San Juan Worm',
+                 size: '#12 (red or pink)' },
+      dropper: { name: 'Copper John',
+                 size: '#16 (red if available)' },
+      spacing: '14–16" between flies. ' +
+               'Red and pink outperform naturals ' +
+               'in off-color water. Fish by scent ' +
+               'and lateral line.'
+    },
+    alts: [
+      { name: "Hare's Ear", size: '#14',
+        replaces: 'dropper' },
+      { name: "Pat's Rubber Legs", size: '#10–12',
+        replaces: 'lead' }
+    ],
+    condition: 'Fish pushed to margins and slower ' +
+               'water. Work the seams between ' +
+               'fast and slow current.'
+  },
+
+  deep_dirty_blown: {
+    type: 'caution',
+    name: 'Blown out',
+    sub: 'Not fishable — wait for clarity',
+    tags: ['Blown out', 'Not fishable'],
+    props: [
+      ['Visibility', 'Under 1 foot'],
+      ['Condition', 'Not fishable'],
+      ['Option', 'Fryingpan River'],
+      ['Check', 'Turbidity on conditions tab']
+    ],
+    rig: {
+      lead:    { name: 'Wait for clarity', size: '—' },
+      dropper: { name: 'Or fish the Fryingpan',
+                 size: '—' },
+      spacing: 'Check the conditions tab. ' +
+               'Wait for turbidity to drop ' +
+               'below 20 FNU before heading out.'
+    },
+    alts: [],
+    condition: 'Chocolate milk means trout have ' +
+               'moved to margins or stopped feeding. ' +
+               'Not worth fishing the main Fork.'
+  },
+
+  riffle_bwo: {
+    type: 'nymph',
+    name: 'BWO hatch rig',
+    sub: 'Matching the nymph — riffle water',
+    tags: ['Riffles', 'BWO hatch', '#16–20'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Euro or short indicator'],
+      ['Drift', 'Dead drift'],
+      ['Tippet', '5x or 6x fluorocarbon']
+    ],
+    rig: {
+      lead:    { name: 'Pheasant Tail',
+                 size: '#16–18' },
+      dropper: { name: "Barr's Emerger",
+                 size: '#18–20' },
+      spacing: '12–14" between flies. ' +
+               '6x fluorocarbon. Fish the ' +
+               'riffle tail into the run head — ' +
+               'that\'s where nymphs stage.'
+    },
+    alts: [
+      { name: 'RS2', size: '#20–22',
+        replaces: 'dropper' },
+      { name: "Hare's Ear", size: '#14–16',
+        replaces: 'lead' }
+    ],
+    condition: 'BWO nymphs active just before ' +
+               'and during the hatch. If fish ' +
+               'start rising switch to dry fly tree.'
+  },
+
+  riffle_skwala: {
+    type: 'nymph',
+    name: 'Stonefly pre-hatch rig',
+    sub: 'Spring stonefly nymph — riffle bottom',
+    tags: ['Riffles', 'Stonefly', '#10–12'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'High stick or euro'],
+      ['Drift', 'Tight line, bottom'],
+      ['Season', 'Late Feb–April']
+    ],
+    rig: {
+      lead:    { name: "Pat's Rubber Legs",
+                 size: '#10–12 (brown or olive)' },
+      dropper: { name: 'Pheasant Tail',
+                 size: '#16–18' },
+      spacing: '16" between flies. ' +
+               'High-stick through fast rocky riffles. ' +
+               'Stonefly nymphs crawl to banks ' +
+               'before hatching — fish the edges.'
+    },
+    alts: [
+      { name: "Hare's Ear", size: '#14–16',
+        replaces: 'dropper' },
+      { name: 'Copper John', size: '#18',
+        replaces: 'lead' }
+    ],
+    condition: 'Stonefly nymphs available all spring. ' +
+               'Fish rocky fast water and bank edges. ' +
+               'This is pre-hatch — they\'re not ' +
+               'swimming yet, they\'re crawling.'
+  },
+
+  riffle_unsure: {
+    type: 'nymph',
+    name: 'Searching rig — riffles',
+    sub: 'Attractor two-fly, cover water',
+    tags: ['Riffles', 'Searching', 'Versatile'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Euro or short indicator'],
+      ['Drift', 'Dead drift'],
+      ['Goal', 'Cover water, find fish']
+    ],
+    rig: {
+      lead:    { name: "Hare's Ear",
+                 size: '#14–16' },
+      dropper: { name: 'RS2',
+                 size: '#20–22 (gray)' },
+      spacing: '14–16" between flies. ' +
+               'Standard searching rig — covers ' +
+               'multiple food sources. ' +
+               'Add split shot to tick bottom.'
+    },
+    alts: [
+      { name: 'Copper John', size: '#18',
+        replaces: 'lead' },
+      { name: 'Zebra Midge', size: '#20–22',
+        replaces: 'dropper' }
+    ],
+    condition: 'When in doubt this covers the most ' +
+               'ground. Hare\'s Ear suggests multiple ' +
+               'bugs, RS2 covers midges and BWO emergers.'
+  },
+
+  riffle_cold: {
+    type: 'nymph',
+    name: 'Cold water rig',
+    sub: 'Under 48°F — slow and deep',
+    tags: ['Cold', 'Slow drift', 'Small flies'],
+    props: [
+      ['Temp', 'Under 48°F'],
+      ['Method', 'Indicator, go slow'],
+      ['Drift', 'Dead drift, deliberate'],
+      ['Key', 'Get to the bottom']
+    ],
+    rig: {
+      lead:    { name: 'Zebra Midge',
+                 size: '#20–22' },
+      dropper: { name: 'RS2',
+                 size: '#22 (gray)' },
+      spacing: '12" between flies. ' +
+               'Small flies, slow drift, ' +
+               'right on the bottom. ' +
+               'Fish barely moving in cold water.'
+    },
+    alts: [
+      { name: 'Pheasant Tail', size: '#18',
+        replaces: 'lead' },
+      { name: 'Copper John', size: '#18',
+        replaces: 'lead' }
+    ],
+    condition: 'Cold water = lethargic fish. ' +
+               'They won\'t move far for a fly. ' +
+               'Presentation and depth matter more ' +
+               'than pattern choice.'
+  },
+
+  riffle_warm: {
+    type: 'nymph',
+    name: 'Warming water rig',
+    sub: '48°F and above — fish activating',
+    tags: ['Warming', 'Active fish', 'Spring'],
+    props: [
+      ['Temp', '48°F and above'],
+      ['Method', 'Euro or indicator'],
+      ['Activity', 'Fish moving and feeding'],
+      ['Watch', 'Surface activity starting']
+    ],
+    rig: {
+      lead:    { name: 'Copper John',
+                 size: '#16–18' },
+      dropper: { name: "Barr's Emerger",
+                 size: '#18–20' },
+      spacing: '14–16" between flies. ' +
+               'As temp rises fish move into riffles. ' +
+               'Barr\'s Emerger covers the BWO nymph ' +
+               'transitioning toward the surface.'
+    },
+    alts: [
+      { name: 'Pheasant Tail', size: '#16–18',
+        replaces: 'dropper' },
+      { name: "Hare's Ear", size: '#14–16',
+        replaces: 'lead' }
+    ],
+    condition: 'Once temp hits 50°F watch for surface ' +
+               'activity. If fish start rising ' +
+               'switch to the dry fly tree.'
+  },
+
+  flat_shallow: {
+    type: 'nymph',
+    name: 'Shallow flat — morning',
+    sub: 'Slow shallow water, stealthy approach',
+    tags: ['Flat', 'Shallow', 'Stealthy'],
+    props: [
+      ['Depth', 'Under 2 feet'],
+      ['Method', 'Euro or tight line'],
+      ['Approach', 'Stealth critical'],
+      ['Tippet', '6x fluorocarbon']
+    ],
+    rig: {
+      lead:    { name: 'RS2',
+                 size: '#20–22 (gray)' },
+      dropper: { name: 'Zebra Midge',
+                 size: '#22' },
+      spacing: '10–12" between flies. ' +
+               'No indicator in shallow flats — ' +
+               'fish are spooky. Long leader, ' +
+               'soft presentation.'
+    },
+    alts: [
+      { name: 'Pheasant Tail', size: '#18',
+        replaces: 'lead' },
+      { name: "Barr's Emerger", size: '#20',
+        replaces: 'dropper' }
+    ],
+    condition: 'Approach from downstream, stay low. ' +
+               'Shallow clear water fish spook at ' +
+               'shadows and vibration.'
+  },
+
+  flat_deep: {
+    type: 'nymph',
+    name: 'Deeper flat — morning',
+    sub: '2–4 feet, slow current',
+    tags: ['Flat', 'Deeper', 'Indicator'],
+    props: [
+      ['Depth', '2–4 feet'],
+      ['Method', 'Indicator or euro'],
+      ['Drift', 'Slow dead drift'],
+      ['Shot', 'Minimal weight']
+    ],
+    rig: {
+      lead:    { name: 'Pheasant Tail',
+                 size: '#16–18' },
+      dropper: { name: 'RS2',
+                 size: '#20–22 (olive)' },
+      spacing: '14" between flies. ' +
+               'Minimal shot — natural drift in ' +
+               'slow water, not bouncing bottom. ' +
+               'Indicator set at depth plus 12".'
+    },
+    alts: [
+      { name: "Hare's Ear", size: '#14–16',
+        replaces: 'lead' },
+      { name: "Barr's Emerger", size: '#18–20',
+        replaces: 'dropper' }
+    ],
+    condition: 'Slower water means fish have more ' +
+               'time to inspect. Finer tippet and ' +
+               'natural drift matter more than pattern.'
+  },
+
+  flat_rising: {
+    type: 'nymph',
+    name: 'Flat — fish showing',
+    sub: 'Dry-dropper when fish are near surface',
+    tags: ['Flat', 'Rising fish', 'Dry-dropper'],
+    props: [
+      ['Activity', 'Subtle rises or noses'],
+      ['Stage', 'Nymph transitioning to surface'],
+      ['Rig', 'Dry-dropper'],
+      ['Tippet', '6x or 7x']
+    ],
+    rig: {
+      lead:    { name: 'Parachute Adams',
+                 size: '#18–20 (dry fly — floats)' },
+      dropper: { name: "Barr's Emerger",
+                 size: '#18–20' },
+      spacing: '12–16" dropper below dry fly. ' +
+               'Dry-dropper covers surface and ' +
+               'sub-surface simultaneously. ' +
+               'Let the fish tell you which they want.'
+    },
+    alts: [
+      { name: 'Elk Hair Caddis', size: '#14–16',
+        replaces: 'lead (dry)' },
+      { name: 'RS2', size: '#20–22',
+        replaces: 'dropper' }
+    ],
+    condition: 'Best dry-dropper situation on the Fork. ' +
+               'If fish fully commit to the surface ' +
+               'switch to the dry fly tree.'
+  },
+
+  flat_searching: {
+    type: 'nymph',
+    name: 'Flat — searching',
+    sub: 'No visible fish, grid the flat',
+    tags: ['Flat', 'Searching', 'Methodical'],
+    props: [
+      ['Strategy', 'Grid the flat in lanes'],
+      ['Method', 'Euro or long leader'],
+      ['Drift', 'Dead drift'],
+      ['Move', 'Every 3–4 casts downstream']
+    ],
+    rig: {
+      lead:    { name: "Hare's Ear",
+                 size: '#14–16' },
+      dropper: { name: 'RS2',
+                 size: '#20–22 (gray)' },
+      spacing: '14" between flies. ' +
+               'Work across the flat in lanes, ' +
+               'moving 2 feet downstream after ' +
+               'each series.'
+    },
+    alts: [
+      { name: 'Pheasant Tail', size: '#16–18',
+        replaces: 'lead' },
+      { name: 'Zebra Midge', size: '#22',
+        replaces: 'dropper' }
+    ],
+    condition: 'Work the seams where flat meets riffle ' +
+               'first — that\'s where fish stage. ' +
+               'Flat fish are there, just harder ' +
+               'to locate than run fish.'
+  }
+
+};
+
+// ── Tree state ──
+const treeState = {
+  dry:   { path: [], el: 'dry-tree',   crumb: 'dry-crumb' },
+  nymph: { path: [], el: 'nymph-tree', crumb: 'nymph-crumb' }
+};
+
+// ── Render engine (shared by both trees) ──
+function renderTree(treeKey) {
+  const state = treeState[treeKey];
+  const isNymph = treeKey === 'nymph';
+  const DATA    = isNymph ? NYMPH_DATA    : DRY_DATA;
+  const FLOW    = isNymph ? NYMPH_FLOW    : DRY_FLOW;
+  const RESULTS = isNymph ? NYMPH_RESULTS : DRY_RESULTS;
+
+  const treeEl  = document.getElementById(state.el);
+  const crumbEl = document.getElementById(state.crumb);
+
+  // Breadcrumb
+  if (state.path.length === 0) {
+    crumbEl.innerHTML = '';
+  } else {
+    let html = '';
+    state.path.forEach((p, i) => {
+      if (i > 0) html +=
+        '<span class="h-crumb-sep">›</span>';
+      html += '<span class="h-crumb-item">'
+            + p.label + '</span>';
+    });
+    html += '<button class="h-reset" onclick="resetTree(\''
+          + treeKey + '\')">'
+          + '↩ Start over</button>';
+    crumbEl.innerHTML = html;
+  }
+
+  if (state.path.length === 0) {
+    showQuestion(treeKey, isNymph ? 'q1' : 'q1',
+                 treeEl, DATA);
+    return;
+  }
+
+  const last = state.path[state.path.length - 1];
+  const next = FLOW[last.val];
+
+  if (next && DATA[next]) {
+    showQuestion(treeKey, next, treeEl, DATA);
+  } else if (RESULTS[last.val]) {
+    showResult(treeKey, RESULTS[last.val], treeEl);
+  } else {
+    showQuestion(treeKey, 'q1', treeEl, DATA);
+  }
+}
+
+function showQuestion(treeKey, key, el, DATA) {
+  const q = DATA[key];
+  if (!q) return;
+  let html = '<div class="h-q-box">'
+           + '<div class="h-step-label">'
+           + q.label + '</div>'
+           + '<div class="h-q-text">'
+           + q.text + '</div>'
+           + '<div class="h-btn-row">';
+  q.opts.forEach(o => {
+    html += '<button class="h-btn" onclick="chooseTree(\''
+          + treeKey + '\',\''
+          + o.val + '\',\''
+          + o.label.replace(/'/g, "\\'")
+          + '\')">' + o.label + '</button>';
+  });
+  html += '</div></div>';
+  el.innerHTML = html;
+}
+
+function showResult(treeKey, r, el) {
+  const isNymph = treeKey === 'nymph';
+  let html = '<div class="h-result ' + r.type + '">';
+
+  // Header
+  html += '<div class="h-result-name">'
+        + r.name + '</div>';
+  html += '<div class="h-result-sub">'
+        + r.sub + '</div>';
+
+  // Tags
+  html += '<div class="h-tag-row">';
+  r.tags.forEach(t => {
+    html += '<span class="h-tag">' + t + '</span>';
+  });
+  html += '</div>';
+
+  // Props grid
+  html += '<div class="h-prop-grid">';
+  r.props.forEach(p => {
+    html += '<div class="h-prop">'
+          + '<span class="h-prop-label">'
+          + p[0] + '</span>'
+          + '<span class="h-prop-val">'
+          + p[1] + '</span>'
+          + '</div>';
+  });
+  html += '</div>';
+
+  // Rig (nymph) or pattern list (dry)
+  if (isNymph && r.rig) {
+    html += '<div class="h-rig">'
+          + '<div class="h-rig-label">Suggested rig</div>'
+          + '<div class="h-rig-row">'
+          + '<span class="h-rig-role">Lead</span>'
+          + '<span class="h-rig-fly">'
+          + r.rig.lead.name
+          + ' ' + r.rig.lead.size + '</span>'
+          + '</div>'
+          + '<div class="h-rig-row">'
+          + '<span class="h-rig-role">Dropper</span>'
+          + '<span class="h-rig-fly">'
+          + r.rig.dropper.name
+          + ' ' + r.rig.dropper.size + '</span>'
+          + '</div>'
+          + '<div class="h-rig-spacing">'
+          + r.rig.spacing + '</div>'
+          + '</div>';
+    if (r.alts && r.alts.length) {
+      html += '<div class="h-rig-label" '
+            + 'style="margin-top:10px">If not working, '
+            + 'substitute:</div>'
+            + '<div class="h-pattern-list">';
+      r.alts.forEach(p => {
+        html += '<div class="h-pattern-row">'
+              + '<span class="h-pattern-name">'
+              + p.name
+              + ' <span style="font-weight:400;'
+              + 'color:var(--ink-3);font-size:0.75rem">'
+              + '→ replaces ' + p.replaces
+              + '</span></span>'
+              + '<span class="h-pattern-size">'
+              + p.size + '</span>'
+              + '</div>';
+      });
+      html += '</div>';
+    }
+  } else {
+    html += '<div class="h-pattern-list">';
+    r.patterns.forEach(p => {
+      html += '<div class="h-pattern-row">'
+            + '<span class="h-pattern-name">'
+            + p.name + '</span>'
+            + '<span class="h-pattern-size">'
+            + p.size + '</span>'
+            + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Condition note
+  html += '<div class="h-condition">'
+        + r.condition + '</div>';
+  html += '</div>';
+
+  // Reset button
+  html += '<button class="h-btn" '
+        + 'onclick="resetTree(\'' + treeKey + '\')" '
+        + 'style="margin-top:4px">↩ Start over</button>';
+
+  el.innerHTML = html;
+}
+
+function chooseTree(treeKey, val, label) {
+  treeState[treeKey].path.push({ val, label });
+  renderTree(treeKey);
+}
+
+function resetTree(treeKey) {
+  treeState[treeKey].path = [];
+  renderTree(treeKey);
+}
+
+// ── Initialize both trees on page load ──
+document.addEventListener('DOMContentLoaded', () => {
+  renderTree('dry');
+  renderTree('nymph');
+  showReg('rf-lower');
 });
 
 // ── Regulations Data ──────────────────────────────────────────────────
