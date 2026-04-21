@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide Review — Roaring Fork Valley Conditions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1a1a18;
+  --ink-2: #4a4a44;
+  --ink-3: #8a8a80;
+  --paper: #f5f2eb;
+  --paper-2: #ede9df;
+  --paper-3: #e2ddd0;
+  --river: #3a7ca5;
+  --river-light: #d4e8f5;
+  --green: #3a7a4a;
+  --green-bg: #e4f0e6;
+  --amber: #b06a00;
+  --amber-bg: #fdefd4;
+  --red: #a03030;
+  --red-bg: #fde8e8;
+  --rule: rgba(26,26,24,0.12);
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── Page wrap ── */
+.page-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+header {
+  border-bottom: 2px solid var(--ink);
+  padding: 1.5rem 1.5rem 1.25rem;
+}
+
+.header-app {
+  font-size: 0.72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  letter-spacing: .02em;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 0.6rem;
+}
+
+.header-subtitle {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  font-weight: 400;
+  line-height: 1.5;
+  max-width: 600px;
+  margin-bottom: 1.25rem;
+  border-left: 3px solid var(--ink);
+  padding-left: 12px;
+}
+
+.guide-fields {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.guide-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guide-field label {
+  font-size: 0.65rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.guide-field input {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  padding: 7px 10px;
+  width: 220px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+.guide-field input:focus {
+  outline: none;
+  border-color: var(--ink-2);
+}
+
+.guide-field-helper {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  font-style: italic;
+  align-self: flex-end;
+  padding-bottom: 9px;
+}
+
+/* ── Sticky progress bar ── */
+#progress-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  padding: 8px 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+#progress-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-3);
+  letter-spacing: .04em;
+}
+
+#progress-text .p-count { color: var(--ink); font-weight: 500; }
+
+/* ── Content ── */
+.page-content {
+  padding: 0 1.5rem;
+}
+
+/* ── Review Section ── */
+.review-section {
+  border-bottom: 1px solid var(--rule);
+  padding: 2rem 0;
+}
+
+.review-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: .03em;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  color: var(--ink);
+}
+
+.review-section-num {
+  font-size: 0.65rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.review-section-intro {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  margin-bottom: 1.25rem;
+  font-weight: 400;
+}
+
+/* ── Review Item ── */
+.review-item {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid transparent;
+  padding: 12px 14px 10px;
+  margin-bottom: 8px;
+  transition: border-left-color .15s;
+}
+
+.review-item.approved { border-left-color: var(--green); }
+.review-item.flagged  { border-left-color: var(--red); }
+.review-item.commented { border-left-color: var(--river); }
+.review-item.approved.commented { border-left-color: var(--green); }
+.review-item.flagged.commented  { border-left-color: var(--red); }
+
+.review-claim {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.review-sublabel {
+  font-size: 0.77rem;
+  color: var(--ink-3);
+  font-weight: 300;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  font-style: italic;
+  font-family: var(--font-body);
+}
+
+.review-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.thumb-btn {
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: background .12s, border-color .12s, color .12s;
+  letter-spacing: .03em;
+  line-height: 1.5;
+  border-radius: 0;
+}
+
+.thumb-btn:hover,
+.thumb-btn.active {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.thumb-btn.wrong-btn:hover,
+.thumb-btn.wrong-btn.active {
+  background: var(--red-bg);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.comment-toggle {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.73rem;
+  color: var(--river);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  line-height: 1.5;
+}
+
+.comment-toggle:hover { color: var(--ink); }
+
+.comment-area {
+  display: none;
+  margin-top: 9px;
+}
+
+.comment-area textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 7px 10px;
+  resize: vertical;
+  line-height: 1.4;
+  border-radius: 0;
+}
+
+.comment-area textarea:focus {
+  outline: none;
+  border-color: var(--ink-2);
+}
+
+/* ── Hatch Item ── */
+.hatch-item {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid transparent;
+  padding: 12px 14px 10px;
+  margin-bottom: 8px;
+  transition: border-left-color .15s;
+}
+
+.hatch-item.approved  { border-left-color: var(--green); }
+.hatch-item.flagged   { border-left-color: var(--red); }
+.hatch-item.commented { border-left-color: var(--river); }
+.hatch-item.approved.commented { border-left-color: var(--green); }
+.hatch-item.flagged.commented  { border-left-color: var(--red); }
+
+.hatch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.hatch-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.hatch-type-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+
+.hatch-type-badge.primary   { background: var(--river-light); color: var(--river); border-color: var(--river); }
+.hatch-type-badge.secondary { background: var(--paper-3); color: var(--ink-2); }
+.hatch-type-badge.attractor { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+
+.hatch-meta {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+
+.hatch-meta-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.hatch-meta-label {
+  font-size: 0.6rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.hatch-meta-val {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-2);
+}
+
+.hatch-detail {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  line-height: 1.4;
+  font-style: italic;
+  margin-bottom: 9px;
+}
+
+/* ── Pattern group ── */
+.pattern-group {
+  margin-bottom: 1.5rem;
+}
+
+.pattern-group-label {
+  font-size: 0.65rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ── Reference table ── */
+.ref-tables {
+  margin-top: 1.25rem;
+}
+
+.ref-table-heading {
+  font-size: 0.65rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.ref-table-set {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ref-table-block {
+  flex: 1 1 220px;
+}
+
+.ref-table-block-title {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin-bottom: 5px;
+}
+
+table.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+table.ref-table th {
+  font-size: 0.62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-3);
+  text-align: left;
+  padding: 5px 10px;
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+}
+
+table.ref-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  color: var(--ink-2);
+  background: var(--paper-2);
+}
+
+table.ref-table tr:nth-child(even) td { background: var(--paper-3); }
+
+/* ── Fixed send bar ── */
+#send-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border-top: 2px solid var(--ink);
+  padding: 12px 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  z-index: 200;
+}
+
+#send-btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: .08em;
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: opacity .15s;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+
+#send-btn:hover:not(:disabled) { opacity: .8; }
+#send-btn:disabled { opacity: .4; cursor: default; }
+
+#send-msg {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+#send-confirm {
+  display: none;
+  font-size: 0.82rem;
+  color: var(--green);
+  font-weight: 500;
+}
+
+/* ── Page footer ── */
+.page-footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  margin-top: 0.5rem;
+}
+
+.page-footer a {
+  color: var(--ink-3);
+  text-decoration: none;
+  font-family: var(--font-mono);
+}
+
+.page-footer a:hover { color: var(--ink); }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  header { padding: 1rem 1rem 1rem; }
+  .page-content { padding: 0 1rem; }
+  .guide-fields { flex-direction: column; gap: 0.75rem; }
+  .guide-field input { width: 100%; }
+  .guide-field-helper { align-self: flex-start; padding-bottom: 0; }
+  #progress-bar { padding: 7px 1rem; }
+  .hatch-header { flex-direction: column; gap: 3px; }
+  .ref-table-set { flex-direction: column; }
+  #send-bar { flex-direction: column; align-items: flex-start; padding: 10px 1rem; gap: 8px; }
+  .page-footer { padding: 1rem; flex-direction: column; gap: 6px; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- Netlify form declaration (for build-time detection) -->
+<form name="guide-review" netlify data-netlify="true" hidden>
+  <input type="text"   name="guide_name">
+  <input type="email"  name="guide_email">
+  <input type="hidden" name="timestamp">
+  <input type="hidden" name="feedback_json">
+  <input type="hidden" name="feedback_summary">
+</form>
+
+<div class="page-wrap">
+
+<header>
+  <div class="header-app">Roaring Fork Valley Conditions</div>
+  <div class="header-title">Guide Review</div>
+  <div class="header-subtitle">You know the river better than the code does. Here's every judgment call in the app — flag anything that's wrong.</div>
+  <div class="guide-fields">
+    <div class="guide-field">
+      <label for="guide-name">Guide Name</label>
+      <input type="text" id="guide-name" placeholder="Your name" autocomplete="name">
+    </div>
+    <div class="guide-field">
+      <label for="guide-email">Email</label>
+      <input type="email" id="guide-email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="guide-field-helper">Optional — helps us follow up. Leave blank to submit anonymously.</div>
+  </div>
+</header>
+
+<div id="progress-bar">
+  <div id="progress-text">
+    <span class="p-count" id="p-done">0</span> of <span id="p-total">0</span> items reviewed
+  </div>
+</div>
+
+<div class="page-content">
+  <div id="review-body"></div>
+</div>
+
+<div class="page-footer">
+  <span>Guide review — not public-facing</span>
+  <a href="index.html">← Back to conditions app</a>
+</div>
+
+</div><!-- /page-wrap -->
+
+<div id="send-bar">
+  <div id="send-msg">Partial submissions are fine — send whatever you've reviewed.</div>
+  <div id="send-confirm">Feedback sent — thank you.</div>
+  <button id="send-btn" onclick="sendFeedback()">Send Feedback</button>
+</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────
+
+const SECTIONS = [
+
+  // ── 1. Flow Thresholds ───────────────────────────────────────────────
+  {
+    num: 1,
+    title: 'Flow Thresholds',
+    intro: 'These CFS bands control the float badge shown on the RF flow card.',
+    note: null,
+    items: [
+      { id: 'f1', label: '< 300 CFS → "Too low to float"' },
+      { id: 'f2', label: '300–499 CFS → "Floatable — raft only"' },
+      { id: 'f3', label: '500–2,999 CFS → "Good float — raft & driftboat"' },
+      { id: 'f4', label: '≥ 3,000 CFS → "High water — expert conditions"' },
+    ],
+    reference: {
+      heading: 'Reference bands — Lower Fork & Emma (readable, not individually reviewable)',
+      tables: [
+        {
+          title: 'Lower Fork (RF @ Glenwood)',
+          rows: [
+            ['< 150 CFS', 'Too Low'],
+            ['150–349 CFS', 'Wadeable / Technical'],
+            ['350–700 CFS', 'Ideal Float'],
+            ['701–900 CFS', 'Pushy'],
+            ['> 900 CFS', 'High Water'],
+          ]
+        },
+        {
+          title: 'Emma (RF @ Emma, upper gauges)',
+          rows: [
+            ['< 100 CFS', 'Too Low'],
+            ['100–249 CFS', 'Wadeable / Technical'],
+            ['250–550 CFS', 'Ideal Float'],
+            ['551–750 CFS', 'Pushy'],
+            ['> 750 CFS', 'High Water'],
+          ]
+        }
+      ]
+    }
+  },
+
+  // ── 2. Water Clarity (Turbidity) ─────────────────────────────────────
+  {
+    num: 2,
+    title: 'Water Clarity (Turbidity)',
+    intro: 'FNU bands used for both the RF at Glenwood and the Colorado blended reading.',
+    note: 'Discrepancy noted: the prompt specified "Poor conditions" for ≥ 36 FNU. The app badge reads "Turbid." File wins — items below reflect the app.',
+    items: [
+      { id: 't1', label: '< 10 FNU → "Fishable"', sub: 'Good visibility — normal dry fly and nymph conditions' },
+      { id: 't2', label: '10–19 FNU → "Marginal"', sub: 'Off-color but fishable — nymphs preferred' },
+      { id: 't3', label: '20–35 FNU → "Off-color"', sub: 'Nymphs recommended; dry fly activity reduced' },
+      { id: 't4', label: '≥ 36 FNU → "Turbid"', sub: 'Poor conditions' },
+    ]
+  },
+
+  // ── 3. Water Temperature ─────────────────────────────────────────────
+  {
+    num: 3,
+    title: 'Water Temperature',
+    intro: 'Measured at RF at Glenwood. Controls both the temp badge and the Hatch ID conditions banner.',
+    note: 'Discrepancy noted: the temp badge collapses 40–49°F into a single band ("Cool — Nymphing"). The 40–44°F and 45–49°F distinction only appears in the Hatch ID tab\'s conditions banner. Both are listed below — flag if either split is wrong.',
+    items: [
+      { id: 'w1', label: '< 40°F → "Cold — Midges" (badge)', sub: 'Midges and small nymphs only — fish lethargic, no surface activity expected' },
+      { id: 'w2', label: '40–44°F → "Cool — Nymphing" (badge) / "Midges active" (banner)', sub: 'Nymphs primary. Small flies, slow drifts.' },
+      { id: 'w3', label: '45–49°F → "Cool — Nymphing" (badge) / "Early BWOs possible" (banner)', sub: 'Watch for risers — nymphing still most productive' },
+      { id: 'w4', label: '50–65°F → "Prime Feeding"', sub: 'Full range of presentations — hatch activity likely' },
+      { id: 'w5', label: '66–67°F → "Warming"', sub: 'Fish stress increasing — mind fight duration' },
+      { id: 'w6', label: '≥ 68°F → "C&R Stress Risk"', sub: 'Consider not fishing' },
+    ]
+  },
+
+  // ── 4. Hatch Calendar ────────────────────────────────────────────────
+  {
+    num: 4,
+    title: 'Hatch Calendar',
+    intro: '14 entries. Dates are approximate for the Fork at ~5,800 ft. Warmer years run 1–2 weeks early.',
+    note: null,
+    hatches: [
+      { id: 'h01', name: 'Midge',
+        dates: 'Oct 15 – Apr 15', peak: 'All season', type: 'primary',
+        detail: 'Tiny two-winged flies active all winter. Look for subtle surface sipping in slow, clear water.' },
+      { id: 'h02', name: 'Blue-Winged Olive (Spring)',
+        dates: 'Mar 7 – May 15', peak: '~Apr 11 ±10d', type: 'primary',
+        detail: 'Small olive mayfly that hatches on overcast afternoons. Classic spring dry fly fishing.' },
+      { id: 'h03', name: 'Caddis (Spring)',
+        dates: 'Apr 15 – May 15', peak: '~Apr 30 ±7d', type: 'primary',
+        detail: 'Tan and olive caddis, afternoon emergence. Skittering or skating a dry is often more effective than a dead drift.' },
+      { id: 'h04', name: 'Stonefly',
+        dates: 'Apr 1 – Jun 30', peak: '~May 15 ±15d', type: 'primary',
+        detail: 'Large dark stonefly crawling to banks to hatch. Nymph patterns along structure are deadly before and during.' },
+      { id: 'h05', name: 'Golden Stone',
+        dates: 'Jun 10 – Aug 15', peak: '~Jul 12 ±10d', type: 'primary',
+        detail: 'Big golden stonefly, early morning activity. Rubber-legs nymphs and large dry attractors both work.' },
+      { id: 'h06', name: 'Pale Morning Dun',
+        dates: 'Jun 15 – Sep 15', peak: '~Aug 1 ±15d', type: 'primary',
+        detail: "Medium olive-yellow mayfly, mid-morning emergence. One of the Fork's most reliable summer hatches." },
+      { id: 'h07', name: 'Green Drake',
+        dates: 'Jun 21 – Jul 21', peak: '~Jul 1–15', type: 'primary',
+        detail: "The Fork's marquee hatch — large olive mayfly, brief window. Fish look up hard; use big drakes and emergers." },
+      { id: 'h08', name: 'Yellow Sally',
+        dates: 'Jun 15 – Aug 15', peak: '~Jul 15 ±10d', type: 'secondary',
+        detail: 'Small yellow stonefly, secondary emergence. Good as a dry-dropper indicator or searching pattern.' },
+      { id: 'h09', name: 'Caddis (Summer/Fall)',
+        dates: 'Jun 15 – Oct 7', peak: '~Aug 11 ±22d', type: 'primary',
+        detail: 'Evening caddis flights throughout summer. Elk Hair Caddis or X-Caddis in tan and olive.' },
+      { id: 'h10', name: 'Trico',
+        dates: 'Aug 1 – Sep 30', peak: '~Sep 1 ±10d', type: 'secondary',
+        detail: 'Tiny morning spinner falls, #20–24. Watch for steady sipping in the flats in August and September.' },
+      { id: 'h11', name: 'Terrestrial',
+        dates: 'Jul 1 – Oct 21', peak: '~Aug 26 ±22d', type: 'primary',
+        detail: 'Ants, beetles, and hoppers blown in from the banks. Afternoon foam-line fishing can be exceptional.' },
+      { id: 'h12', name: 'Blue-Winged Olive (Fall)',
+        dates: 'Sep 15 – Nov 15', peak: '~Oct 16 ±10d', type: 'primary',
+        detail: 'Fall BWO on overcast days. Often the best dry fly fishing of the year — fish keyed tightly to the hatch.' },
+      { id: 'h13', name: 'Red Worm',
+        dates: 'Apr 1 – Jul 31', peak: '~May 31 ±15d', type: 'attractor',
+        detail: 'San Juan Worm / annelid pattern. Most effective during runoff or after rain when worms wash in.' },
+      { id: 'h14', name: 'Egg',
+        dates: 'Oct 1 – Apr 30', peak: '~Jan 14 ±22d', type: 'attractor',
+        detail: 'Egg patterns near tributary mouths during fall spawning. Deep, slow presentation.' },
+    ]
+  },
+
+  // ── 5. Fly Patterns ──────────────────────────────────────────────────
+  {
+    num: 5,
+    title: 'Fly Patterns',
+    intro: 'Patterns used in the dry fly and nymph decision trees. Locally available and appropriate?',
+    note: null,
+    patternGroups: [
+      {
+        label: 'Dry Flies — Midge',
+        items: [
+          { id: 'p01', label: "Griffith's Gnat #20–22", sub: 'Midge cluster' },
+          { id: 'p02', label: 'Sprout Midge #20–22', sub: 'Midge cluster' },
+          { id: 'p03', label: "Antonio's Hi-Vis Midge #22–24", sub: 'Midge — visibility aid' },
+          { id: 'p04', label: "Dorsey's Midge Emerger #22–24", sub: 'Midge emerger' },
+          { id: 'p05', label: "McCannel's Massacre Midge #22–24", sub: 'Midge emerger' },
+        ]
+      },
+      {
+        label: 'Dry Flies — Blue-Winged Olive / BWO',
+        items: [
+          { id: 'p06', label: 'Parachute BWO #18–22', sub: 'BWO' },
+          { id: 'p07', label: 'Sparkle Dun #18–22', sub: 'BWO' },
+          { id: 'p08', label: 'Vis-A-Dun #18–22', sub: 'BWO' },
+          { id: 'p09', label: 'CDC Comparadun #20–22', sub: 'BWO — technical water' },
+          { id: 'p10', label: "Barr's Emerger #18–20", sub: 'BWO — film (dry fly use)' },
+        ]
+      },
+      {
+        label: 'Dry Flies — Skwala / Stonefly',
+        items: [
+          { id: 'p11', label: 'Club Sandwich #8–10', sub: 'Skwala' },
+          { id: 'p12', label: 'Skwala Adult #8–10', sub: 'Skwala' },
+          { id: 'p13', label: 'Chubby Chernobyl (olive) #8', sub: 'Skwala' },
+        ]
+      },
+      {
+        label: 'Dry Flies — Caddis',
+        items: [
+          { id: 'p14', label: 'Elk Hair Caddis #14–16', sub: 'Caddis' },
+          { id: 'p15', label: 'Puterbaugh Caddis #14–16', sub: 'Caddis' },
+          { id: 'p16', label: 'X-Caddis #14–16', sub: 'Caddis emerger' },
+        ]
+      },
+      {
+        label: 'Dry Flies — Green Drake',
+        items: [
+          { id: 'p17', label: 'Parachute Green Drake #10–12', sub: 'Green Drake' },
+          { id: 'p18', label: 'Sparkle Dun (olive) #10–12', sub: 'Green Drake' },
+          { id: 'p19', label: 'Comparadun (olive) #10–12', sub: 'Green Drake' },
+          { id: 'p20', label: 'CDC Green Drake #12', sub: 'Green Drake' },
+        ]
+      },
+      {
+        label: 'Dry Flies — Searching / Dry-Dropper',
+        items: [
+          { id: 'p21', label: 'Parachute Adams #18–20', sub: 'Searching pattern / dry-dropper indicator' },
+        ]
+      },
+      {
+        label: 'Nymphs',
+        items: [
+          { id: 'p22', label: "Pat's Rubber Legs #10–12", sub: 'Heavy anchor — stonefly' },
+          { id: 'p23', label: 'RS2 #20–24', sub: 'Midge / BWO emerger — universal dropper' },
+          { id: 'p24', label: 'Pheasant Tail #16–18', sub: 'BWO nymph — general' },
+          { id: 'p25', label: "Hare's Ear #14–16", sub: 'Searching anchor' },
+          { id: 'p26', label: 'Copper John #16–18', sub: 'Attractor — mid-weight' },
+          { id: 'p27', label: "Barr's Emerger #18–20", sub: 'BWO transitional (nymph use)' },
+          { id: 'p28', label: 'Zebra Midge #20–22', sub: 'Cold water — midge' },
+          { id: 'p29', label: 'San Juan Worm #12', sub: 'Off-color — attractor' },
+          { id: 'p30', label: 'Perdigon #14–18', sub: 'Attractor — fast water, tungsten bead' },
+          { id: 'p31', label: 'Frenchie #14–16', sub: 'Attractor — versatile' },
+          { id: 'p32', label: 'Jigged Pheasant Tail #16–18', sub: 'Modern PT variant — jig hook' },
+        ]
+      },
+    ]
+  },
+
+  // ── 6. Regulations ───────────────────────────────────────────────────
+  {
+    num: 6,
+    title: 'Regulations',
+    intro: 'Hardcoded CPW 2026–27 data. Updated annually in March. Flag anything stale or wrong.',
+    note: null,
+    items: [
+      { id: 'r1',
+        label: 'Roaring Fork Upper — McFarlane Cr. → Woody Creek Bridge',
+        sub: 'Artificial flies only · Full C&R · Gold Medal · No seasonal closures on main segment' },
+      { id: 'r2',
+        label: 'Roaring Fork Lower — Woody Creek Bridge → CO River',
+        sub: 'Artificial flies and lures only · 2 fish / 2 possession · 16" minimum · Gold Medal · ⚠ Fishing prohibited Mar 15–May 31 and Oct 1–Nov 30 within 50 yards of Fourmile Creek and Threemile Creek confluences' },
+      { id: 'r3',
+        label: 'Colorado River — Troublesome Creek confluence → I-70 Exit 90 at Rifle',
+        sub: 'All legal methods · 2 fish / 2 possession · No size minimum · ⚠ Fishing prohibited Mar 15–May 31 and Oct 1–Nov 30 within 50 yards of Canyon, Elk, Grizzly, and No Name Creek confluences' },
+      { id: 'r4',
+        label: 'Fryingpan River — Ruedi Dam → Roaring Fork confluence (~14 miles)',
+        sub: 'Artificial flies and lures only · Brown trout: 4 daily / 8 possession · All other trout: C&R only · Gold Medal · No seasonal closures' },
+      { id: 'r5',
+        label: 'Crystal River — Entire river',
+        sub: 'All legal methods · 4 daily / 8 possession · No size minimum · Statewide regulations — no special rules listed in CPW brochure' },
+    ]
+  },
+
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+const LS_KEY = 'rfv-guide-review-v1';
+let state = {}; // { itemId: { thumbsUp: bool|null, comment: string } }
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) state = JSON.parse(saved);
+  } catch(e) { state = {}; }
+}
+
+function saveState() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function getItem(id) {
+  if (!state[id]) state[id] = { thumbsUp: null, comment: '' };
+  return state[id];
+}
+
+function isReviewed(id) {
+  const s = state[id];
+  if (!s) return false;
+  return s.thumbsUp !== null || (s.comment && s.comment.trim() !== '');
+}
+
+// ── All item IDs (flat list for progress counting) ────────────────────────
+function allItemIds() {
+  const ids = [];
+  for (const sec of SECTIONS) {
+    if (sec.items) sec.items.forEach(i => ids.push(i.id));
+    if (sec.hatches) sec.hatches.forEach(h => ids.push(h.id));
+    if (sec.patternGroups) sec.patternGroups.forEach(g => g.items.forEach(i => ids.push(i.id)));
+  }
+  return ids;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────
+function updateProgress() {
+  const ids = allItemIds();
+  const done = ids.filter(isReviewed).length;
+  document.getElementById('p-done').textContent  = done;
+  document.getElementById('p-total').textContent = ids.length;
+}
+
+// ── Interactions ──────────────────────────────────────────────────────────
+function thumbUp(id) {
+  const s = getItem(id);
+  s.thumbsUp = s.thumbsUp === true ? null : true;
+  saveState();
+  refreshItemEl(id);
+  updateProgress();
+}
+
+function thumbWrong(id) {
+  const s = getItem(id);
+  s.thumbsUp = s.thumbsUp === false ? null : false;
+  saveState();
+  refreshItemEl(id);
+  updateProgress();
+}
+
+function toggleComment(id) {
+  const area = document.getElementById('ca-' + id);
+  if (!area) return;
+  const open = area.style.display === 'block';
+  area.style.display = open ? 'none' : 'block';
+  if (!open) area.querySelector('textarea').focus();
+  const toggle = document.getElementById('ct-' + id);
+  if (toggle) toggle.textContent = open ? 'Add comment' : 'Hide comment';
+}
+
+function saveComment(id, val) {
+  const s = getItem(id);
+  s.comment = val;
+  saveState();
+  refreshItemClasses(id);
+  updateProgress();
+}
+
+function refreshItemEl(id) {
+  const s = state[id] || {};
+  const btnUp   = document.getElementById('tb-' + id);
+  const btnWrong = document.getElementById('tw-' + id);
+  if (btnUp)    btnUp.classList.toggle('active',    s.thumbsUp === true);
+  if (btnWrong) btnWrong.classList.toggle('active', s.thumbsUp === false);
+  refreshItemClasses(id);
+}
+
+function refreshItemClasses(id) {
+  const el = document.getElementById('item-' + id);
+  if (!el) return;
+  const s = state[id] || {};
+  el.classList.toggle('approved',  s.thumbsUp === true);
+  el.classList.toggle('flagged',   s.thumbsUp === false);
+  el.classList.toggle('commented', !!(s.comment && s.comment.trim()));
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderItem(item) {
+  const s = state[item.id] || {};
+  const approved   = s.thumbsUp === true;
+  const flagged    = s.thumbsUp === false;
+  const hasComment = !!(s.comment && s.comment.trim());
+  const cls = (approved ? ' approved' : flagged ? ' flagged' : '') + (hasComment ? ' commented' : '');
+  const subHtml = item.sub
+    ? `<div class="review-sublabel">${escHtml(item.sub)}</div>`
+    : '';
+  return `
+    <div class="review-item${cls}" id="item-${item.id}">
+      <div class="review-claim">${escHtml(item.label)}</div>
+      ${subHtml}
+      <div class="review-controls">
+        <button class="thumb-btn${approved ? ' active' : ''}" id="tb-${item.id}"
+                onclick="thumbUp('${item.id}')">👍 Looks right</button>
+        <button class="thumb-btn wrong-btn${flagged ? ' active' : ''}" id="tw-${item.id}"
+                onclick="thumbWrong('${item.id}')">👎 Looks wrong</button>
+        <button class="comment-toggle" id="ct-${item.id}"
+                onclick="toggleComment('${item.id}')">${hasComment ? 'Hide comment' : 'Add comment'}</button>
+      </div>
+      <div class="comment-area" id="ca-${item.id}" style="display:${hasComment ? 'block' : 'none'}">
+        <textarea rows="2" placeholder="What's wrong with this? Be specific."
+                  oninput="saveComment('${item.id}', this.value)">${escHtml(s.comment || '')}</textarea>
+      </div>
+    </div>`;
+}
+
+function renderHatchItem(h) {
+  const s = state[h.id] || {};
+  const approved   = s.thumbsUp === true;
+  const flagged    = s.thumbsUp === false;
+  const hasComment = !!(s.comment && s.comment.trim());
+  const cls = (approved ? ' approved' : flagged ? ' flagged' : '') + (hasComment ? ' commented' : '');
+  return `
+    <div class="hatch-item${cls}" id="item-${h.id}">
+      <div class="hatch-header">
+        <div class="hatch-name">${escHtml(h.name)}</div>
+        <span class="hatch-type-badge ${h.type}">${h.type}</span>
+      </div>
+      <div class="hatch-meta">
+        <div class="hatch-meta-pair">
+          <span class="hatch-meta-label">Dates</span>
+          <span class="hatch-meta-val">${escHtml(h.dates)}</span>
+        </div>
+        <div class="hatch-meta-pair">
+          <span class="hatch-meta-label">Peak</span>
+          <span class="hatch-meta-val">${escHtml(h.peak)}</span>
+        </div>
+      </div>
+      <div class="hatch-detail">${escHtml(h.detail)}</div>
+      <div class="review-controls">
+        <button class="thumb-btn${approved ? ' active' : ''}" id="tb-${h.id}"
+                onclick="thumbUp('${h.id}')">👍 Looks right</button>
+        <button class="thumb-btn wrong-btn${flagged ? ' active' : ''}" id="tw-${h.id}"
+                onclick="thumbWrong('${h.id}')">👎 Looks wrong</button>
+        <button class="comment-toggle" id="ct-${h.id}"
+                onclick="toggleComment('${h.id}')">${hasComment ? 'Hide comment' : 'Add comment'}</button>
+      </div>
+      <div class="comment-area" id="ca-${h.id}" style="display:${hasComment ? 'block' : 'none'}">
+        <textarea rows="2" placeholder="Dates off? Wrong peak window? Wrong type label?"
+                  oninput="saveComment('${h.id}', this.value)">${escHtml(s.comment || '')}</textarea>
+      </div>
+    </div>`;
+}
+
+function renderRefTables(reference) {
+  let html = `<div class="ref-tables">
+    <div class="ref-table-heading">${escHtml(reference.heading)}</div>
+    <div class="ref-table-set">`;
+  for (const tbl of reference.tables) {
+    html += `<div class="ref-table-block">
+      <div class="ref-table-block-title">${escHtml(tbl.title)}</div>
+      <table class="ref-table">
+        <thead><tr><th>CFS</th><th>Label</th></tr></thead>
+        <tbody>`;
+    for (const row of tbl.rows) {
+      html += `<tr><td>${escHtml(row[0])}</td><td>${escHtml(row[1])}</td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderSection(sec) {
+  let html = `<div class="review-section">
+    <div class="review-section-num">Section ${sec.num} of ${SECTIONS.length}</div>
+    <div class="review-section-title">${escHtml(sec.title)}</div>
+    <div class="review-section-intro">${escHtml(sec.intro)}</div>`;
+
+  // Simple items (flow, turbidity, temp, regs)
+  if (sec.items) {
+    for (const item of sec.items) html += renderItem(item);
+  }
+
+  // Hatch calendar items
+  if (sec.hatches) {
+    for (const h of sec.hatches) html += renderHatchItem(h);
+  }
+
+  // Pattern groups
+  if (sec.patternGroups) {
+    for (const group of sec.patternGroups) {
+      html += `<div class="pattern-group">
+        <div class="pattern-group-label">${escHtml(group.label)}</div>`;
+      for (const item of group.items) html += renderItem(item);
+      html += `</div>`;
+    }
+  }
+
+  // Reference tables (non-reviewable)
+  if (sec.reference) {
+    html += renderRefTables(sec.reference);
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function render() {
+  const body = document.getElementById('review-body');
+  body.innerHTML = SECTIONS.map(renderSection).join('');
+  updateProgress();
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────
+async function sendFeedback() {
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const guideName  = document.getElementById('guide-name').value.trim();
+  const guideEmail = document.getElementById('guide-email').value.trim();
+  const timestamp  = new Date().toISOString();
+
+  // Build flat feedback array
+  const feedbackArray = [];
+  for (const sec of SECTIONS) {
+    const items = [];
+    if (sec.items)   items.push(...sec.items);
+    if (sec.hatches) items.push(...sec.hatches.map(h => ({ id: h.id, label: h.name + ' — ' + h.dates })));
+    if (sec.patternGroups) sec.patternGroups.forEach(g => items.push(...g.items));
+    for (const item of items) {
+      const s = state[item.id] || {};
+      feedbackArray.push({
+        section:   sec.title,
+        label:     item.label || item.name,
+        thumbs_up: s.thumbsUp,
+        comment:   s.comment || ''
+      });
+    }
+  }
+
+  // Human-readable summary
+  const nameHeader = guideName  ? `Guide: ${guideName}\n`  : '';
+  const emailHeader = guideEmail ? `Email: ${guideEmail}\n` : '';
+  let summary = nameHeader + emailHeader + (nameHeader || emailHeader ? '\n' : '');
+
+  let lastSection = '';
+  for (const entry of feedbackArray) {
+    if (entry.thumbs_up === null && !entry.comment) continue;
+    if (entry.section !== lastSection) {
+      summary += `\n=== ${entry.section} ===\n`;
+      lastSection = entry.section;
+    }
+    const mark    = entry.thumbs_up ? '✓' : '—';
+    const comment = entry.comment   ? ` | ${entry.comment}` : '';
+    summary += `${mark} ${entry.label}${comment}\n`;
+  }
+
+  if (summary.trim() === '') summary = '(no items reviewed)';
+
+  const payload = new URLSearchParams({
+    'form-name':       'guide-review',
+    'guide_name':      guideName,
+    'guide_email':     guideEmail,
+    'timestamp':       timestamp,
+    'feedback_json':   JSON.stringify(feedbackArray),
+    'feedback_summary': summary
+  });
+
+  try {
+    const res = await fetch('/', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    payload.toString()
+    });
+
+    if (res.ok) {
+      document.getElementById('send-msg').style.display     = 'none';
+      document.getElementById('send-confirm').style.display = 'block';
+      btn.textContent = 'Sent';
+      // Disable all interactive elements
+      document.querySelectorAll('.thumb-btn, .comment-toggle, textarea, #guide-name, #guide-email')
+        .forEach(el => el.disabled = true);
+    } else {
+      throw new Error('HTTP ' + res.status);
+    }
+  } catch(e) {
+    btn.disabled    = false;
+    btn.textContent = 'Send Feedback';
+    document.getElementById('send-msg').textContent =
+      'Submission failed — check connection and try again.';
+    document.getElementById('send-msg').style.color = 'var(--red)';
+  }
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadState();
+render();
+</script>
+
+</body>
+</html>

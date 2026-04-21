@@ -1172,6 +1172,20 @@
     border-color: var(--green);
   }
 
+  .hatch-now-tag.secondary {
+    background: var(--paper-3);
+    color: var(--ink-2);
+    border-color: var(--ink-3);
+    font-style: italic;
+  }
+
+  .hatch-now-tag.attractor {
+    background: var(--paper-3);
+    color: var(--ink-3);
+    border-color: var(--rule);
+    font-style: italic;
+  }
+
   .hatch-now-none {
     font-size: 0.82rem;
     color: var(--ink-3);
@@ -1215,12 +1229,6 @@
     align-self: stretch;
     background: var(--rule);
     margin: 0 6px;
-  }
-
-  .hatch-now-tag.attractor {
-    background: var(--amber-bg);
-    color: var(--amber);
-    border-color: var(--amber);
   }
 
   @media (max-width: 600px) {
@@ -1305,6 +1313,7 @@
 </nav>
 
 <div id="share-toast">Link copied</div>
+<div class="warning-bar" id="runoff-warning"></div>
 <div id="summary-bar"></div>
 <div id="loading-state"><div class="spinner"></div>Fetching live gauge data…</div>
 <div id="error-state">Unable to load USGS data. Check connection and try refreshing.</div>
@@ -1512,7 +1521,7 @@
     <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09081000/" target="_blank">09081000</a> RF at Emma<br>
     <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09081600/" target="_blank">09081600</a> Crystal above Avalanche Cr · Redstone
   </div>
-  <div class="footer-brand">RFV Conditions</div>
+  <a href="guide-review.html" style="font-size:0.68rem;color:var(--ink-3);text-decoration:none;font-family:var(--font-mono)">Guide Review →</a>
 </footer>
 
 <script>
@@ -1548,6 +1557,7 @@ function clarityBadge(fnu) {
   if (fnu === null) return '';
   if (fnu < 10) return '<span class="badge badge-green">Fishable</span>';
   if (fnu < 20) return '<span class="badge badge-amber">Marginal</span>';
+  if (fnu < 36) return '<span class="badge badge-amber">Off-color</span>';
   return '<span class="badge badge-red">Turbid</span>';
 }
 
@@ -1586,41 +1596,75 @@ function fmtFnu(v) { return v.toFixed(1); }
 
 const HATCH_CALENDAR = [
   { name: 'Midge',
-    detail: 'Size 20–26 · All day, esp. late morning',
-    start: [10,15], end: [4,15], wrap: true  },
+    detail: 'Tiny two-winged flies active all winter. Look for subtle surface sipping in slow, clear water.',
+    start: [10,15], end: [4,15],
+    wrap: true, peak: 30,
+    type: 'primary' },
   { name: 'Blue-Winged Olive (Spring)',
-    detail: 'Size 18–22 · Overcast days, afternoon',
-    start: [3,7],   end: [5,15], wrap: false },
-  { name: 'Stonefly (Spring)',
-    detail: 'Size 8–12 · Banks and rocky riffles',
-    start: [3,7],   end: [4,30], wrap: false },
-  { name: 'Red Worm',
-    detail: 'Size 12–14 · Deep nymph rig',
-    start: [4,1],   end: [7,31], wrap: false },
+    detail: 'Small olive mayfly that hatches on overcast afternoons. Classic spring dry fly fishing.',
+    start: [3,7],  end: [5,15],
+    wrap: false, peak: 21,
+    type: 'primary' },
   { name: 'Caddis (Spring)',
-    detail: 'Size 14–16 · Afternoon, tan & olive',
-    start: [4,15],  end: [5,15], wrap: false },
+    detail: 'Tan and olive caddis, afternoon emergence. Skittering or skating a dry is often more effective than a dead drift.',
+    start: [4,15], end: [5,15],
+    wrap: false, peak: 15,
+    type: 'primary' },
+  { name: 'Stonefly',
+    detail: 'Large dark stonefly crawling to banks to hatch. Nymph patterns along structure are deadly before and during.',
+    start: [4,1],  end: [6,30],
+    wrap: false, peak: 30,
+    type: 'primary' },
+  { name: 'Golden Stone',
+    detail: 'Big golden stonefly, early morning activity. Rubber-legs nymphs and large dry attractors both work.',
+    start: [6,10], end: [8,15],
+    wrap: false, peak: 21,
+    type: 'primary' },
   { name: 'Pale Morning Dun',
-    detail: 'Size 16–18 · Mid-morning',
-    start: [6,15],  end: [9,15], wrap: false },
+    detail: 'Medium olive-yellow mayfly, mid-morning emergence. One of the Fork\'s most reliable summer hatches.',
+    start: [6,15], end: [9,15],
+    wrap: false, peak: 30,
+    type: 'primary' },
   { name: 'Green Drake',
-    detail: 'Size 10–12 · Brief — 2 weeks only',
-    start: [6,15],  end: [9,15], wrap: false },
+    detail: 'The Fork\'s marquee hatch — large olive mayfly, brief window. Fish look up hard; use big drakes and emergers.',
+    start: [6,21], end: [7,21],
+    wrap: false, peak: 10,
+    type: 'primary' },
+  { name: 'Yellow Sally',
+    detail: 'Small yellow stonefly, secondary emergence. Good as a dry-dropper indicator or searching pattern.',
+    start: [6,15], end: [8,15],
+    wrap: false, peak: 21,
+    type: 'secondary' },
   { name: 'Caddis (Summer/Fall)',
-    detail: 'Size 14–18 · Evening, tan & olive',
-    start: [6,15],  end: [10,7], wrap: false },
-  { name: 'Stonefly (Summer)',
-    detail: 'Size 6–10 · Early morning',
-    start: [7,1],   end: [9,15], wrap: false },
+    detail: 'Evening caddis flights throughout summer. Elk Hair Caddis or X-Caddis in tan and olive.',
+    start: [6,15], end: [10,7],
+    wrap: false, peak: 45,
+    type: 'primary' },
+  { name: 'Trico',
+    detail: 'Tiny morning spinner falls, #20–24. Watch for steady sipping in the flats in August and September.',
+    start: [8,1],  end: [9,30],
+    wrap: false, peak: 21,
+    type: 'secondary' },
   { name: 'Terrestrial',
-    detail: 'Ants, beetles, hoppers · Afternoon',
-    start: [7,1],   end: [10,21], wrap: false },
+    detail: 'Ants, beetles, and hoppers blown in from the banks. Afternoon foam-line fishing can be exceptional.',
+    start: [7,1],  end: [10,21],
+    wrap: false, peak: 45,
+    type: 'primary' },
   { name: 'Blue-Winged Olive (Fall)',
-    detail: 'Size 18–22 · Overcast, afternoon',
-    start: [9,15],  end: [11,15], wrap: false },
+    detail: 'Fall BWO on overcast days. Often the best dry fly fishing of the year — fish keyed tightly to the hatch.',
+    start: [9,15], end: [11,15],
+    wrap: false, peak: 21,
+    type: 'primary' },
+  { name: 'Red Worm',
+    detail: 'San Juan Worm / annelid pattern. Most effective during runoff or after rain when worms wash in.',
+    start: [4,1],  end: [7,31],
+    wrap: false, peak: 30,
+    type: 'attractor' },
   { name: 'Egg',
-    detail: 'Size 14–16 · Deep, near tributary mouths',
-    start: [10,1],  end: [4,30], wrap: true  },
+    detail: 'Egg patterns near tributary mouths during fall spawning. Deep, slow presentation.',
+    start: [10,1], end: [4,30],
+    wrap: true,  peak: 45,
+    type: 'attractor' },
 ];
 
 function isHatchActive(h) {
@@ -1635,18 +1679,24 @@ function isHatchActive(h) {
 }
 
 function isPeak(h) {
-  const now = new Date();
-  const doy = Math.floor((now -
-    new Date(now.getFullYear(), 0, 0)) / 86400000);
-  const sDate = new Date(now.getFullYear(), h.start[0] - 1, h.start[1]);
-  const eDate = new Date(now.getFullYear(), h.end[0]   - 1, h.end[1]);
+  const now   = new Date();
+  const doy   = Math.floor((now -
+    new Date(now.getFullYear(), 0, 0))
+    / 86400000);
+  const sDate = new Date(
+    now.getFullYear(), h.start[0]-1, h.start[1]);
+  const eDate = new Date(
+    now.getFullYear(), h.end[0]-1,   h.end[1]);
   let sDoy = Math.floor(
-    (sDate - new Date(now.getFullYear(), 0, 0)) / 86400000);
+    (sDate - new Date(now.getFullYear(), 0, 0))
+    / 86400000);
   let eDoy = Math.floor(
-    (eDate - new Date(now.getFullYear(), 0, 0)) / 86400000);
+    (eDate - new Date(now.getFullYear(), 0, 0))
+    / 86400000);
   if (h.wrap && eDoy < sDoy) eDoy += 365;
-  const mid = (sDoy + eDoy) / 2;
-  return Math.abs(doy - mid) <= 30;
+  const mid      = (sDoy + eDoy) / 2;
+  const halfPeak = (h.peak || 30) / 2;
+  return Math.abs(doy - mid) <= halfPeak;
 }
 
 function isHatchSoon(h) {
@@ -1989,8 +2039,8 @@ function processAndRender(tsMap, statsRf, statsCoB) {
     const floatBadge = document.getElementById('rf-float-badge');
     if (floatBadge) {
       if (lvRfFlow >= 3000) {
-        floatBadge.className = 'float-badge blown';
-        floatBadge.textContent = 'Not fishable';
+        floatBadge.className = 'float-badge raft';
+        floatBadge.textContent = 'High water — expert conditions';
       } else if (lvRfFlow >= 500) {
         floatBadge.className = 'float-badge good';
         floatBadge.textContent = 'Good float — raft & driftboat';
@@ -2033,6 +2083,14 @@ function processAndRender(tsMap, statsRf, statsCoB) {
   if (rfTurbD && rfTurbD.diff > 5) {
     $('rf-warning').style.display = 'block';
     $('rf-warning').textContent = '⚠ Turbidity rising on the Fork — likely Crystal River input';
+  }
+
+  // Runoff onset warning — flow up >15% AND turbidity up >5 FNU in 24h
+  if (rfTrendD && rfTurbD &&
+      Number(rfTrendD.pct) > 15 && rfTurbD.diff > 5) {
+    $('runoff-warning').style.display = 'block';
+    $('runoff-warning').textContent =
+      '⚠ Runoff onset likely — conditions may deteriorate rapidly';
   }
 
   // ── Charts ──
@@ -2106,13 +2164,13 @@ function processAndRender(tsMap, statsRf, statsCoB) {
   }
 
   if (lvRfFlow !== null) {
-    const badge = lvRfFlow >= 3000 ? 'Not fishable' : lvRfFlow >= 500 ? 'Good float — raft & driftboat' : lvRfFlow >= 300 ? 'Floatable — raft only' : 'Too low to float';
-    const cls   = lvRfFlow >= 3000 ? 'sum-bad' : lvRfFlow >= 500 ? 'sum-good' : lvRfFlow >= 300 ? 'sum-warn' : 'sum-bad';
+    const badge = lvRfFlow >= 3000 ? 'High water — expert conditions' : lvRfFlow >= 500 ? 'Good float — raft & driftboat' : lvRfFlow >= 300 ? 'Floatable — raft only' : 'Too low to float';
+    const cls   = lvRfFlow >= 3000 ? 'sum-warn' : lvRfFlow >= 500 ? 'sum-good' : lvRfFlow >= 300 ? 'sum-warn' : 'sum-bad';
     sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">RF Flow</span>${fmtCfs(lvRfFlow)} cfs · ${badge}</span>`);
   }
   if (lvRfTurb !== null) {
-    const label = lvRfTurb < 10 ? 'Fishable' : lvRfTurb < 20 ? 'Marginal' : 'Turbid';
-    const cls   = lvRfTurb < 10 ? 'sum-good' : lvRfTurb < 20 ? 'sum-warn' : 'sum-bad';
+    const label = lvRfTurb < 10 ? 'Fishable' : lvRfTurb < 20 ? 'Marginal' : lvRfTurb < 36 ? 'Off-color' : 'Turbid';
+    const cls   = lvRfTurb < 10 ? 'sum-good' : lvRfTurb < 20 ? 'sum-warn' : lvRfTurb < 36 ? 'sum-warn' : 'sum-bad';
     sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">Clarity</span>${fmtFnu(lvRfTurb)} FNU · ${label}</span>`);
   }
   if (lvRfTempF !== null) {
@@ -2120,8 +2178,8 @@ function processAndRender(tsMap, statsRf, statsCoB) {
     sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">Temp</span>${lvRfTempF}°F</span>`);
   }
   if (lvBlended !== null) {
-    const label = lvBlended < 10 ? 'Clear' : lvBlended < 20 ? 'Marginal' : 'Turbid';
-    const cls   = lvBlended < 10 ? 'sum-good' : lvBlended < 20 ? 'sum-warn' : 'sum-bad';
+    const label = lvBlended < 10 ? 'Clear' : lvBlended < 20 ? 'Marginal' : lvBlended < 36 ? 'Off-color' : 'Turbid';
+    const cls   = lvBlended < 10 ? 'sum-good' : lvBlended < 20 ? 'sum-warn' : lvBlended < 36 ? 'sum-warn' : 'sum-bad';
     sumParts.push(`<span class="sum-item ${cls}"><span class="sum-label">CO Blended</span>${fmtFnu(lvBlended)} FNU · ${label}</span>`);
   }
 
@@ -2180,23 +2238,27 @@ function updateHatchBanner(lvRfTempF, lvRfTurb) {
     cls = 'poor';
     msg = '⚠ Turbidity high (' + lvRfTurb.toFixed(1)
         + ' FNU) — water off-color. Dry fly activity '
-        + 'unlikely. Switch to nymph rig, fish deep.';
+        + 'reduced. Switch to nymph rig, fish deep.';
   } else if (hasTurb && lvRfTurb >= 10) {
     cls = 'marginal';
     msg = '~ Turbidity marginal (' + lvRfTurb.toFixed(1)
         + ' FNU) — dry fly possible in clearer sections. '
         + 'Nymphing more reliable.';
-  } else if (hasTemp && lvRfTempF < 45) {
+  } else if (hasTemp && lvRfTempF < 40) {
     cls = 'cold';
     msg = '❄ Water cold (' + lvRfTempF
         + '°F) — midges and nymphs only. '
         + 'No surface activity expected until temp rises.';
-  } else if (hasTemp && lvRfTempF >= 45
-             && lvRfTempF < 50) {
+  } else if (hasTemp && lvRfTempF < 45) {
     cls = 'marginal';
-    msg = '~ Water warming (' + lvRfTempF
-        + '°F) — midge hatches possible. '
-        + 'BWOs unlikely until temp reaches 50°F+.';
+    msg = '~ ' + lvRfTempF
+        + '°F — Midges active — nymphs primary. '
+        + 'Fish lethargic; small flies and slow drifts.';
+  } else if (hasTemp && lvRfTempF < 50) {
+    cls = 'marginal';
+    msg = '~ ' + lvRfTempF
+        + '°F — Early BWOs possible — watch for risers. '
+        + 'Nymphing still most productive.';
   } else if (hasTemp && lvRfTempF >= 50) {
     cls = 'good';
     msg = '✓ Good hatch conditions (' + lvRfTempF
@@ -2276,13 +2338,16 @@ const DRY_DATA = {
   },
   q2_large: {
     label: 'Step 2 of 3',
-    text: 'What does it look like?',
+    text: 'Look at the wings. What shape are they?',
     opts: [
-      { label: 'Flat wings over body like a cockroach, '
+      { label: 'Upright like a sail — large olive or '
+             + 'green body, mayfly-type',
+        val: 'green_drake' },
+      { label: 'Flat over body like a cockroach, '
              + 'olive/brown, crawling on rocks',
         val: 'skwala' },
-      { label: 'Similar but wings more upright, '
-             + 'orange-yellow body',
+      { label: 'Flat, orange-yellow body — '
+             + 'summer stonefly',
         val: 'not_spring' }
     ]
   },
@@ -2334,7 +2399,8 @@ const DRY_FLOW = {
   midge: 'q3_midge', bwo: 'q3_bwo',
   bwo_small: 'q3_bwo', bwo_lg: 'q3_bwo',
   skwala: 'q3_skwala', caddis: 'q3_caddis',
-  caddis_small: 'q3_caddis', not_spring: null
+  caddis_small: 'q3_caddis', not_spring: null,
+  green_drake: null
 };
 
 const DRY_RESULTS = {
@@ -2520,6 +2586,29 @@ const DRY_RESULTS = {
     condition: 'Fish may be taking pupa just under the '
              + 'film. X-Caddis trailing shuck suggests '
              + 'an emerger — try it first.'
+  },
+  green_drake: {
+    type: 'dry', name: 'Green Drake',
+    sub: 'Drunella grandis — marquee summer hatch',
+    tags: ['#10–12', 'Jun 21–Jul 21', 'Upright wings', 'Olive/green'],
+    props: [
+      ['Wing shape', 'Upright, large — mayfly'],
+      ['Body', 'Olive / green'],
+      ['Rise form', 'Aggressive, deliberate'],
+      ['Window', 'Brief — ~30 days']
+    ],
+    patterns: [
+      { name: 'Parachute Green Drake', size: '#10–12' },
+      { name: 'Sparkle Dun (olive)', size: '#10–12' },
+      { name: 'Comparadun (olive)', size: '#10–12' },
+      { name: 'CDC Green Drake', size: '#12' }
+    ],
+    condition: 'The Fork\'s marquee hatch. Fish will rise aggressively — '
+             + 'target the foam lines and transition edges. '
+             + 'Match the size exactly; fish are selective. '
+             + 'Use an emerger if they won\'t take the adult. '
+             + 'Hatch progresses upstream — starts Glenwood late June, '
+             + 'reaches Basalt by mid-July.'
   },
   not_spring: {
     type: 'caution', name: 'Not a spring hatch',
@@ -2804,6 +2893,9 @@ const NYMPH_RESULTS = {
       { name: 'RS2', size: '#20–22',
         replaces: 'dropper' },
       { name: "Hare's Ear", size: '#14–16',
+        replaces: 'lead' },
+      { name: 'Jigged Pheasant Tail', size: '#16–18',
+        note: 'modern PT variant, jig hook',
         replaces: 'lead' }
     ],
     condition: 'BWO nymphs active just before ' +
@@ -2836,7 +2928,10 @@ const NYMPH_RESULTS = {
       { name: "Hare's Ear", size: '#14–16',
         replaces: 'dropper' },
       { name: 'Copper John', size: '#18',
-        replaces: 'lead' }
+        replaces: 'lead' },
+      { name: 'Jigged Pheasant Tail', size: '#16–18',
+        note: 'modern PT variant, jig hook',
+        replaces: 'dropper' }
     ],
     condition: 'Stonefly nymphs available all spring. ' +
                'Fish rocky fast water and bank edges. ' +
@@ -2869,7 +2964,13 @@ const NYMPH_RESULTS = {
       { name: 'Copper John', size: '#18',
         replaces: 'lead' },
       { name: 'Zebra Midge', size: '#20–22',
-        replaces: 'dropper' }
+        replaces: 'dropper' },
+      { name: 'Perdigon', size: '#14–18',
+        note: 'attractor, fast water, tungsten bead',
+        replaces: 'lead' },
+      { name: 'Frenchie', size: '#14–16',
+        note: 'attractor, versatile',
+        replaces: 'lead' }
     ],
     condition: 'When in doubt this covers the most ' +
                'ground. Hare\'s Ear suggests multiple ' +
@@ -2901,6 +3002,12 @@ const NYMPH_RESULTS = {
       { name: 'Pheasant Tail', size: '#18',
         replaces: 'lead' },
       { name: 'Copper John', size: '#18',
+        replaces: 'lead' },
+      { name: 'Perdigon', size: '#16–18',
+        note: 'attractor, fast water, tungsten bead',
+        replaces: 'lead' },
+      { name: 'Frenchie', size: '#14–16',
+        note: 'attractor, versatile',
         replaces: 'lead' }
     ],
     condition: 'Cold water = lethargic fish. ' +
@@ -2998,7 +3105,10 @@ const NYMPH_RESULTS = {
       { name: "Hare's Ear", size: '#14–16',
         replaces: 'lead' },
       { name: "Barr's Emerger", size: '#18–20',
-        replaces: 'dropper' }
+        replaces: 'dropper' },
+      { name: 'Jigged Pheasant Tail', size: '#16–18',
+        note: 'modern PT variant, jig hook',
+        replaces: 'lead' }
     ],
     condition: 'Slower water means fish have more ' +
                'time to inspect. Finer tippet and ' +
@@ -3270,20 +3380,23 @@ function renderHatchNow() {
     return;
   }
 
-  const bugTags = bugs.map(h => {
+  el.innerHTML = active.map(h => {
     const peak = isPeak(h);
-    return '<span class="hatch-now-tag ' + (peak ? 'peak' : '') + '">'
-         + h.name + (peak ? ' ★' : '') + '</span>';
+    const isSecondary = h.type === 'secondary';
+    const isAttractor = h.type === 'attractor';
+    let cls = 'hatch-now-tag';
+    if (peak && !isSecondary && !isAttractor)
+      cls += ' peak';
+    if (isSecondary) cls += ' secondary';
+    if (isAttractor) cls += ' attractor';
+    const label = isSecondary
+      ? h.name + ' (secondary)'
+      : isAttractor
+        ? h.name + ' (attractor)'
+        : h.name + (peak ? ' ★' : '');
+    return '<span class="' + cls + '">'
+         + label + '</span>';
   }).join('');
-
-  const atTags = attractors.map(h =>
-    '<span class="hatch-now-tag attractor">' + h.name + '</span>'
-  ).join('');
-
-  const sep = (bugs.length > 0 && attractors.length > 0)
-    ? '<span class="hatch-now-divider"></span>' : '';
-
-  el.innerHTML = bugTags + sep + atTags;
 }
 
 document.addEventListener('DOMContentLoaded', renderHatchNow);
