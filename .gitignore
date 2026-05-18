@@ -1,0 +1,5 @@
+# Ignore everything except HTML files, markdown, and this file
+*
+!*.html
+!*.md
+!.gitignore
