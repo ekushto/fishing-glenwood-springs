@@ -411,6 +411,34 @@
   .hatch-status.active { color: var(--amber); }
   .hatch-status.soon   { color: var(--ink-3); }
 
+  .hatch-card.featured {
+    border-color: var(--green);
+    border-width: 2px;
+    background: var(--green-bg);
+  }
+  .hatch-card.featured .hatch-name {
+    color: var(--green);
+    font-size: 0.85rem;
+  }
+
+  .gd-reach-status {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin: 5px 0 2px;
+  }
+  .gd-reach {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+  .gd-reach.peak   { background: var(--green);    color: #fff; }
+  .gd-reach.active { background: var(--amber-bg); color: var(--amber); }
+  .gd-reach.soon   { background: var(--paper-3);  color: var(--ink-3); }
+
   /* ── Footer ── */
   footer {
     padding: 1.25rem 1.5rem;
@@ -1616,9 +1644,9 @@ const HATCH_CALENDAR = [
     wrap: false, peak: 30,
     type: 'primary' },
   { name: 'Golden Stone',
-    detail: 'Big golden stonefly, early morning activity. Rubber-legs nymphs and large dry attractors both work.',
-    start: [6,10], end: [8,15],
-    wrap: false, peak: 21,
+    detail: 'Big golden stonefly, early morning activity. Rubber-legs nymphs and large dry attractors both work. Runs longest on Lower and Upper Fork.',
+    start: [6,10], end: [9,30],
+    wrap: false, peak: 30,
     type: 'primary' },
   { name: 'Pale Morning Dun',
     detail: 'Medium olive-yellow mayfly, mid-morning emergence. One of the Fork\'s most reliable summer hatches.',
@@ -1626,14 +1654,14 @@ const HATCH_CALENDAR = [
     wrap: false, peak: 30,
     type: 'primary' },
   { name: 'Green Drake',
-    detail: 'The Fork\'s marquee hatch — large olive mayfly, brief window. Fish look up hard; use big drakes and emergers.',
-    start: [6,21], end: [7,21],
-    wrap: false, peak: 10,
-    type: 'primary' },
-  { name: 'Yellow Sally',
-    detail: 'Small yellow stonefly, secondary emergence. Good as a dry-dropper indicator or searching pattern.',
-    start: [6,15], end: [8,15],
+    detail: 'The Fork\'s marquee hatch. Starts at Glenwood late June → reaches Basalt by mid-July → Upper Fork by August. Fish look up hard; match the size.',
+    start: [6,21], end: [8,15],
     wrap: false, peak: 21,
+    type: 'primary', featured: true },
+  { name: 'Yellow Sally',
+    detail: 'Small yellow stonefly, secondary emergence. Starts Lower Fork in June, spreads to all reaches by August. Good dry-dropper indicator.',
+    start: [6,15], end: [9,30],
+    wrap: false, peak: 30,
     type: 'secondary' },
   { name: 'Caddis (Summer/Fall)',
     detail: 'Evening caddis flights throughout summer. Elk Hair Caddis or X-Caddis in tan and olive.',
@@ -1655,6 +1683,21 @@ const HATCH_CALENDAR = [
     start: [9,15], end: [11,15],
     wrap: false, peak: 21,
     type: 'primary' },
+  { name: 'Skwala',
+    detail: 'Early season stonefly crawling to banks to hatch. Shucks on rocks confirm the hatch — fish tight to structure.',
+    start: [2,15], end: [4,15],
+    wrap: false, peak: 21,
+    type: 'secondary' },
+  { name: 'Winter Stonefly',
+    detail: 'Small dark stonefly active on warm afternoons in late winter and early spring. Often overlooked; worth fishing a small dark nymph.',
+    start: [12,15], end: [5,1],
+    wrap: true, peak: 30,
+    type: 'secondary' },
+  { name: 'Cranefly',
+    detail: 'Large daddy-long-legs blown off banks in late summer. Fish take them opportunistically near banks and eddies.',
+    start: [7,1],  end: [9,15],
+    wrap: false, peak: 30,
+    type: 'secondary' },
   { name: 'Red Worm',
     detail: 'San Juan Worm / annelid pattern. Most effective during runoff or after rain when worms wash in.',
     start: [4,1],  end: [7,31],
@@ -1667,7 +1710,69 @@ const HATCH_CALENDAR = [
     type: 'attractor' },
 ];
 
+// ── Green Drake onset tracking ──────────────────────────────────────────
+// Onset: first day after May 1 where 7-day rolling mean water temp at
+// gauge 09085000 ≥ 11.11°C (52°F). Reach offsets from 9-year data:
+//   Lower = onset+0 to +35d · Middle = +14 to +49d · Upper = +28 to +63d
+let GD = { onset: null, rolling7C: null };
+
+function computeGDOnset(dailyData) {
+  // dailyData: [{date:'YYYY-MM-DD', tempC:float}] sorted ascending
+  const year = new Date().getFullYear();
+  const seasonStart = new Date(year, 5, 1);   // Jun 1 — no historical onset before Jun 17
+  const seasonEnd   = new Date(year, 8, 15);  // Sep 15
+  for (let i = 6; i < dailyData.length; i++) {
+    const d = new Date(dailyData[i].date + 'T12:00:00');
+    if (d < seasonStart || d > seasonEnd) continue;
+    const w = dailyData.slice(i - 6, i + 1).filter(x => x.tempC !== null && !isNaN(x.tempC));
+    if (w.length < 4) continue;
+    const mean = w.reduce((s, x) => s + x.tempC, 0) / w.length;
+    if (mean >= 11.11) { GD.rolling7C = mean; return d; }
+  }
+  const last7 = dailyData.slice(-7).filter(x => x.tempC !== null && !isNaN(x.tempC));
+  if (last7.length >= 4)
+    GD.rolling7C = last7.reduce((s, x) => s + x.tempC, 0) / last7.length;
+  return null;
+}
+
+function gdStatus() {
+  const today = new Date();
+  if (!GD.onset) {
+    const approaching = GD.rolling7C !== null
+      && GD.rolling7C >= 9.44          // ~49°F — warming toward threshold
+      && today >= new Date(today.getFullYear(), 5, 1); // not before Jun 1
+    return { active: false, approaching,
+             lower: false, middle: false, upper: false,
+             lowerPeak: false, middlePeak: false, upperPeak: false };
+  }
+  const d = (today - GD.onset) / 86400000;
+  const lower  = d >= 0  && d <= 35;
+  const middle = d >= 14 && d <= 49;
+  const upper  = d >= 28 && d <= 63;
+  return {
+    active: lower || middle || upper,
+    approaching: false,
+    lower, middle, upper,
+    lowerPeak:  lower  && d >= 3  && d <= 17,
+    middlePeak: middle && d >= 17 && d <= 31,
+    upperPeak:  upper  && d >= 38 && d <= 52,
+  };
+}
+
+function gdShortDate(dt) {
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return mo[dt.getMonth()] + ' ' + dt.getDate();
+}
+
+function gdWindowStr(offsetStart, offsetEnd) {
+  if (!GD.onset) return '';
+  const ms = 86400000;
+  return gdShortDate(new Date(GD.onset.getTime() + offsetStart * ms))
+       + '–' + gdShortDate(new Date(GD.onset.getTime() + offsetEnd * ms));
+}
+
 function isHatchActive(h) {
+  if (h.name === 'Green Drake') return gdStatus().active;
   const now = new Date();
   const m   = now.getMonth() + 1;
   const d   = now.getDate();
@@ -1679,6 +1784,10 @@ function isHatchActive(h) {
 }
 
 function isPeak(h) {
+  if (h.name === 'Green Drake') {
+    const st = gdStatus();
+    return st.active && (st.lowerPeak || st.middlePeak || st.upperPeak);
+  }
   const now   = new Date();
   const doy   = Math.floor((now -
     new Date(now.getFullYear(), 0, 0))
@@ -1701,6 +1810,7 @@ function isPeak(h) {
 
 function isHatchSoon(h) {
   if (isHatchActive(h)) return false;
+  if (h.name === 'Green Drake') return gdStatus().approaching;
   const now = new Date();
   const startDate = new Date(now.getFullYear(), h.start[0] - 1, h.start[1]);
   const diff = (startDate - now) / 86400000;
@@ -1730,10 +1840,25 @@ function renderHatches() {
     const label = status === 'peak' ? 'Peak'
                 : status === 'active' ? 'Active'
                 : 'Starting Soon';
+    let detail = h.detail;
+    let reachHtml = '';
+    if (h.name === 'Green Drake' && GD.onset) {
+      const st = gdStatus();
+      detail = 'Onset ~' + gdShortDate(GD.onset) + '.  '
+             + 'Lower ' + gdWindowStr(0, 35) + ' · '
+             + 'Middle ' + gdWindowStr(14, 49) + ' · '
+             + 'Upper ' + gdWindowStr(28, 63) + '.';
+      const tags = [];
+      if (st.lower)  tags.push('<span class="gd-reach ' + (st.lowerPeak  ? 'peak' : 'active') + '">Lower'  + (st.lowerPeak  ? ' ★' : '') + '</span>');
+      if (st.middle) tags.push('<span class="gd-reach ' + (st.middlePeak ? 'peak' : 'active') + '">Middle' + (st.middlePeak ? ' ★' : '') + '</span>');
+      if (st.upper)  tags.push('<span class="gd-reach ' + (st.upperPeak  ? 'peak' : 'active') + '">Upper'  + (st.upperPeak  ? ' ★' : '') + '</span>');
+      if (tags.length) reachHtml = '<div class="gd-reach-status">' + tags.join('') + '</div>';
+    }
     const card = `
-      <div class="hatch-card">
+      <div class="hatch-card${h.featured ? ' featured' : ''}">
         <div class="hatch-name">${h.name}</div>
-        <div class="hatch-detail">${h.detail}</div>
+        <div class="hatch-detail">${detail}</div>
+        ${reachHtml}
         <div class="hatch-status ${status}">${label}</div>
       </div>`;
     if (ATTRACTORS.has(h.name)) {
@@ -1913,16 +2038,21 @@ async function loadData() {
   $('refresh-btn').textContent = '↺ Loading…';
 
   try {
-    const [res, statsRfRes, statsCoBRes] = await Promise.all([
+    const GD_TEMP_URL = 'https://waterservices.usgs.gov/nwis/dv/?format=json'
+      + '&sites=09085000&parameterCd=00010&period=P60D&siteStatus=all';
+
+    const [res, statsRfRes, statsCoBRes, gdTempRes] = await Promise.all([
       fetch(apiUrl()),
       fetch(statsAPI('09085000')),
       fetch(statsAPI('09085100')),
+      fetch(GD_TEMP_URL).catch(() => null),
     ]);
     if (!res.ok) throw new Error('API error ' + res.status);
-    const [data, statsRfText, statsCoBText] = await Promise.all([
+    const [data, statsRfText, statsCoBText, gdTempJson] = await Promise.all([
       res.json(),
-      statsRfRes.ok   ? statsRfRes.text()   : null,
-      statsCoBRes.ok  ? statsCoBRes.text()  : null,
+      statsRfRes.ok  ? statsRfRes.text()  : null,
+      statsCoBRes.ok ? statsCoBRes.text() : null,
+      (gdTempRes && gdTempRes.ok) ? gdTempRes.json().catch(() => null) : null,
     ]);
 
     const tsMap = {};
@@ -1939,6 +2069,28 @@ async function loadData() {
     const statsCoB   = statsCoBText   ? parseStats(statsCoBText)   : null;
 
     processAndRender(tsMap, statsRf, statsCoB);
+
+    // Compute Green Drake onset from 60-day daily temp data, then re-render
+    // hatch displays with reach-specific windows. Fails silently — calendar
+    // dates remain as fallback.
+    if (gdTempJson) {
+      try {
+        // USGS dv returns max(:00001), min(:00002), and mean(:00003) series —
+        // select the daily mean by stat code suffix in the series name.
+        for (const ts of gdTempJson.value.timeSeries) {
+          if (!ts.name.endsWith(':00003')) continue; // mean only
+          const dailyData = ts.values[0].value
+            .filter(v => v.value !== '-999999' && v.value !== '')
+            .map(v => ({ date: v.dateTime.slice(0, 10), tempC: parseFloat(v.value) }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+          GD.onset = computeGDOnset(dailyData);
+          renderHatches();
+          renderHatchNow();
+          break;
+        }
+      } catch(e) { /* fall through to calendar-date fallback */ }
+    }
+
     $('update-time').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',timeZoneName:'short'});
     $('loading-state').style.display = 'none';
     $('error-state').style.display = 'none';
@@ -2417,7 +2569,9 @@ const DRY_RESULTS = {
     patterns: [
       { name: 'Griffith\'s Gnat', size: '#20–22' },
       { name: 'Sprout Midge', size: '#20–22' },
-      { name: 'Antonio\'s Hi-Vis Midge', size: '#22–24' }
+      { name: 'Antonio\'s Hi-Vis Midge', size: '#22–24' },
+      { name: 'HOH CDC Midge Adult', size: '#20–22', local: true },
+      { name: 'Morgans Midge', size: '#20–22', local: true }
     ],
     condition: 'Fish keying on clusters in the film. '
              + 'Dead drift only — any drag = refusal.'
@@ -2434,8 +2588,10 @@ const DRY_RESULTS = {
     ],
     patterns: [
       { name: 'Dorsey\'s Midge Emerger', size: '#22–24' },
-      { name: 'McCannel\'s Massacre Midge', size: '#22–24' },
-      { name: 'RS2 (gray)', size: '#20–22' }
+      { name: 'RS2 (gray)', size: '#20–22' },
+      { name: 'HOH CDC Spent Midge', size: '#20–22', local: true },
+      { name: 'Hatching Midge', size: '#20–22', local: true },
+      { name: 'Bill\'s Midge Emerger', size: '#20–22', local: true }
     ],
     condition: 'Fish just below the film. '
              + 'Try dry-dropper: surface midge + RS2 below.'
@@ -2453,7 +2609,9 @@ const DRY_RESULTS = {
     patterns: [
       { name: 'Parachute BWO', size: '#18–20' },
       { name: 'Sparkle Dun', size: '#18–20' },
-      { name: 'Vis-A-Dun', size: '#18–20' }
+      { name: 'Vis-A-Dun', size: '#18–20' },
+      { name: 'Perfect Baetis', size: '#18–20', local: true },
+      { name: 'No Hackle BWO', size: '#18–20', local: true }
     ],
     condition: 'Overcast + cold + light rain = best BWO hatch. '
              + 'Dead drift in feeding lanes.'
@@ -2471,7 +2629,9 @@ const DRY_RESULTS = {
     patterns: [
       { name: 'CDC Comparadun', size: '#20' },
       { name: 'Sparkle Dun', size: '#20–22' },
-      { name: 'Barr\'s Emerger', size: '#18–20' }
+      { name: 'Barr\'s Emerger', size: '#18–20' },
+      { name: 'Perfect Baetis', size: '#18–20', local: true },
+      { name: 'Hackle Dun Baetis', size: '#18–20', local: true }
     ],
     condition: 'Drop to 7x tippet. Check drift before '
              + 'changing flies — drag kills more than '
@@ -2490,7 +2650,9 @@ const DRY_RESULTS = {
     patterns: [
       { name: 'Parachute BWO', size: '#20' },
       { name: 'Vis-A-Dun', size: '#20' },
-      { name: 'CDC Comparadun', size: '#20–22' }
+      { name: 'CDC Comparadun', size: '#20–22' },
+      { name: 'Perfect Baetis', size: '#20–22', local: true },
+      { name: 'No Hackle BWO', size: '#20–22', local: true }
     ],
     condition: 'Spring BWOs on the Fork run #18–20. '
              + 'If they look smaller, size down to #20–22.'
@@ -2508,7 +2670,9 @@ const DRY_RESULTS = {
     patterns: [
       { name: 'Parachute BWO', size: '#18–20' },
       { name: 'Sparkle Dun', size: '#18–20' },
-      { name: 'Vis-A-Dun', size: '#18–20' }
+      { name: 'Vis-A-Dun', size: '#18–20' },
+      { name: 'Perfect Baetis', size: '#18–20', local: true },
+      { name: 'Hackle Dun Baetis', size: '#18–20', local: true }
     ],
     condition: 'If body looks pinkish-tan rather than '
              + 'olive in late April–May, lean toward PMD.'
@@ -2562,8 +2726,9 @@ const DRY_RESULTS = {
     ],
     patterns: [
       { name: 'Elk Hair Caddis', size: '#14–16' },
-      { name: 'Puterbaugh Caddis', size: '#14–16' },
-      { name: 'X-Caddis', size: '#14–16' }
+      { name: 'X-Caddis', size: '#14–16' },
+      { name: 'Pearl and Elk Caddis', size: '#14–16', local: true },
+      { name: 'Ethawing Caddis', size: '#14–16', local: true }
     ],
     condition: 'Fish are chasing — try a slight skitter '
              + 'across current. Lower Fork gets early '
@@ -2581,7 +2746,9 @@ const DRY_RESULTS = {
     ],
     patterns: [
       { name: 'X-Caddis', size: '#14–16' },
-      { name: 'Elk Hair Caddis', size: '#14–16' }
+      { name: 'Elk Hair Caddis', size: '#14–16' },
+      { name: 'Pearl and Elk Caddis', size: '#14–16', local: true },
+      { name: 'Ethawing Caddis', size: '#14–16', local: true }
     ],
     condition: 'Fish may be taking pupa just under the '
              + 'film. X-Caddis trailing shuck suggests '
@@ -2590,25 +2757,26 @@ const DRY_RESULTS = {
   green_drake: {
     type: 'dry', name: 'Green Drake',
     sub: 'Drunella grandis — marquee summer hatch',
-    tags: ['#10–12', 'Jun 21–Jul 21', 'Upright wings', 'Olive/green'],
+    tags: ['#10–12', 'Late Jun–Aug', 'Upright wings', 'Olive/green'],
     props: [
       ['Wing shape', 'Upright, large — mayfly'],
       ['Body', 'Olive / green'],
       ['Rise form', 'Aggressive, deliberate'],
-      ['Window', 'Brief — ~30 days']
+      ['Progression', 'Glenwood → Basalt → Upper in ~6 weeks']
     ],
     patterns: [
       { name: 'Parachute Green Drake', size: '#10–12' },
       { name: 'Sparkle Dun (olive)', size: '#10–12' },
-      { name: 'Comparadun (olive)', size: '#10–12' },
-      { name: 'CDC Green Drake', size: '#12' }
+      { name: 'CDC Green Drake', size: '#12' },
+      { name: 'Royal Wulff', size: '#10–12', local: true },
+      { name: 'H & L Variant', size: '#10–12', local: true },
+      { name: 'Sparkledun Green Drake', size: '#12', local: true }
     ],
     condition: 'The Fork\'s marquee hatch. Fish will rise aggressively — '
              + 'target the foam lines and transition edges. '
-             + 'Match the size exactly; fish are selective. '
-             + 'Use an emerger if they won\'t take the adult. '
-             + 'Hatch progresses upstream — starts Glenwood late June, '
-             + 'reaches Basalt by mid-July.'
+             + 'Match the size; fish are selective but will eat a Royal Wulff '
+             + 'when the hatch is on. Use an emerger if they won\'t take the adult. '
+             + 'Starts at Glenwood late June → Basalt mid-July → Upper Fork by August.'
   },
   not_spring: {
     type: 'caution', name: 'Not a spring hatch',
@@ -2772,6 +2940,12 @@ const NYMPH_RESULTS = {
       { name: 'Copper John', size: '#18',
         replaces: 'lead' },
       { name: "Hare's Ear", size: '#14–16',
+        replaces: 'dropper' },
+      { name: 'Freestone Emerger', size: '#18–20',
+        note: 'local TC pattern',
+        replaces: 'dropper' },
+      { name: 'Biot Baetis', size: '#18–22',
+        note: 'local TC pattern',
         replaces: 'dropper' }
     ],
     condition: 'Fish are lethargic in cold water — ' +
@@ -2804,7 +2978,13 @@ const NYMPH_RESULTS = {
       { name: 'Pheasant Tail', size: '#16–18',
         replaces: 'dropper' },
       { name: 'Copper John', size: '#18',
-        replaces: 'lead' }
+        replaces: 'lead' },
+      { name: 'Freestone Emerger', size: '#18–20',
+        note: 'local TC pattern',
+        replaces: 'dropper' },
+      { name: 'Biot Baetis', size: '#18–22',
+        note: 'local TC pattern',
+        replaces: 'dropper' }
     ],
     condition: 'Pre-runoff fish are aggressive and ' +
                'moving. Bank seams and current edges ' +
@@ -2896,7 +3076,13 @@ const NYMPH_RESULTS = {
         replaces: 'lead' },
       { name: 'Jigged Pheasant Tail', size: '#16–18',
         note: 'modern PT variant, jig hook',
-        replaces: 'lead' }
+        replaces: 'lead' },
+      { name: 'Freestone Emerger', size: '#18–20',
+        note: 'local TC pattern',
+        replaces: 'dropper' },
+      { name: 'BH Polywing Emerger', size: '#18–20',
+        note: 'local TC pattern',
+        replaces: 'dropper' }
     ],
     condition: 'BWO nymphs active just before ' +
                'and during the hatch. If fish ' +
@@ -2970,7 +3156,13 @@ const NYMPH_RESULTS = {
         replaces: 'lead' },
       { name: 'Frenchie', size: '#14–16',
         note: 'attractor, versatile',
-        replaces: 'lead' }
+        replaces: 'lead' },
+      { name: 'BLMs', size: '#16–20',
+        note: 'local TC pattern',
+        replaces: 'lead' },
+      { name: 'Sparklewing RS2', size: '#20–22',
+        note: 'local TC pattern',
+        replaces: 'dropper' }
     ],
     condition: 'When in doubt this covers the most ' +
                'ground. Hare\'s Ear suggests multiple ' +
@@ -3008,6 +3200,12 @@ const NYMPH_RESULTS = {
         replaces: 'lead' },
       { name: 'Frenchie', size: '#14–16',
         note: 'attractor, versatile',
+        replaces: 'lead' },
+      { name: 'BH Polywing Emerger', size: '#20–22',
+        note: 'local TC pattern',
+        replaces: 'dropper' },
+      { name: 'BLMs', size: '#18–20',
+        note: 'local TC pattern',
         replaces: 'lead' }
     ],
     condition: 'Cold water = lethargic fish. ' +
@@ -3041,7 +3239,13 @@ const NYMPH_RESULTS = {
       { name: 'Pheasant Tail', size: '#16–18',
         replaces: 'dropper' },
       { name: "Hare's Ear", size: '#14–16',
-        replaces: 'lead' }
+        replaces: 'lead' },
+      { name: 'Freestone Emerger', size: '#18–20',
+        note: 'local TC pattern',
+        replaces: 'dropper' },
+      { name: 'Soft Hackle BWO', size: '#16–18',
+        note: 'local TC pattern',
+        replaces: 'dropper' }
     ],
     condition: 'Once temp hits 50°F watch for surface ' +
                'activity. If fish start rising ' +
@@ -3073,6 +3277,12 @@ const NYMPH_RESULTS = {
       { name: 'Pheasant Tail', size: '#18',
         replaces: 'lead' },
       { name: "Barr's Emerger", size: '#20',
+        replaces: 'dropper' },
+      { name: 'Sparklewing RS2', size: '#20–22',
+        note: 'local TC pattern',
+        replaces: 'lead' },
+      { name: 'BH Polywing Emerger', size: '#20–22',
+        note: 'local TC pattern',
         replaces: 'dropper' }
     ],
     condition: 'Approach from downstream, stay low. ' +
@@ -3108,7 +3318,13 @@ const NYMPH_RESULTS = {
         replaces: 'dropper' },
       { name: 'Jigged Pheasant Tail', size: '#16–18',
         note: 'modern PT variant, jig hook',
-        replaces: 'lead' }
+        replaces: 'lead' },
+      { name: 'Sparklewing RS2', size: '#20–22',
+        note: 'local TC pattern',
+        replaces: 'dropper' },
+      { name: 'Biot Baetis', size: '#18–22',
+        note: 'local TC pattern',
+        replaces: 'dropper' }
     ],
     condition: 'Slower water means fish have more ' +
                'time to inspect. Finer tippet and ' +
@@ -3324,9 +3540,13 @@ function showResult(treeKey, r, el) {
   } else {
     html += '<div class="h-pattern-list">';
     r.patterns.forEach(p => {
+      const localTag = p.local
+        ? ' <span style="font-size:0.65rem;color:var(--river);'
+          + 'font-weight:400;letter-spacing:.04em">local</span>'
+        : '';
       html += '<div class="h-pattern-row">'
             + '<span class="h-pattern-name">'
-            + p.name + '</span>'
+            + p.name + localTag + '</span>'
             + '<span class="h-pattern-size">'
             + p.size + '</span>'
             + '</div>';
@@ -3334,9 +3554,15 @@ function showResult(treeKey, r, el) {
     html += '</div>';
   }
 
-  // Condition note
+  // Condition note — append live reach windows for Green Drake when onset is known
+  let condText = r.condition;
+  if (r.name === 'Green Drake' && GD.onset) {
+    condText += ' Current windows: Lower ' + gdWindowStr(0, 35)
+              + ' · Middle ' + gdWindowStr(14, 49)
+              + ' · Upper ' + gdWindowStr(28, 63) + '.';
+  }
   html += '<div class="h-condition">'
-        + r.condition + '</div>';
+        + condText + '</div>';
   html += '</div>';
 
   // Reset button
@@ -3389,11 +3615,21 @@ function renderHatchNow() {
       cls += ' peak';
     if (isSecondary) cls += ' secondary';
     if (isAttractor) cls += ' attractor';
-    const label = isSecondary
-      ? h.name + ' (secondary)'
-      : isAttractor
-        ? h.name + ' (attractor)'
-        : h.name + (peak ? ' ★' : '');
+    let label;
+    if (h.name === 'Green Drake' && GD.onset) {
+      const st = gdStatus();
+      const rp = [];
+      if (st.lower)  rp.push('Lower'  + (st.lowerPeak  ? ' ★' : ''));
+      if (st.middle) rp.push('Middle' + (st.middlePeak ? ' ★' : ''));
+      if (st.upper)  rp.push('Upper'  + (st.upperPeak  ? ' ★' : ''));
+      label = 'Green Drake' + (rp.length ? ' — ' + rp.join(' · ') : '');
+    } else {
+      label = isSecondary
+        ? h.name + ' (secondary)'
+        : isAttractor
+          ? h.name + ' (attractor)'
+          : h.name + (peak ? ' ★' : '');
+    }
     return '<span class="' + cls + '">'
          + label + '</span>';
   }).join('');
