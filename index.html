@@ -7,6 +7,27 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- ═══ SECTION MAP ═══════════════════════════════════════════════════
+  CSS    — grouped under "── label ──" comments (header, charts, hatch
+           tab, season toggle, decision trees, regs, footer, print)
+  HTML   — header · summary bar · tab nav · Conditions tab · Regulations
+           tab · Hatch ID tab (season toggle + dry/nymph trees) · footer
+  JS     — in order:
+    Helpers                 formatting utils
+    Hatch calendar          HATCH_CALENDAR + isHatchActive/isPeak
+    Green Drake onset       computeGDOnset, gdStatus, gdWindowStr,
+                            gdReachNote (per-reach live status)
+    NWS Weather             forecast cards
+    USGS fetch / charts     gauges, percentiles, Chart.js, badges
+    Hatch banner            live temp/turbidity banner (Hatch ID tab)
+    Decision trees          spring DRY_*/NYMPH_* · SUMMER_* · FALL_* ·
+                            SEASON_TREES + defaultSeason/setSeason ·
+                            render engine (renderTree/showQuestion/
+                            showResult/chooseTree/resetTree)
+    Hatch Now grid          active hatch list (Hatch ID tab)
+    Regulations             showReg + hardcoded CPW data
+  Search the "── label ──" comments to navigate; line numbers drift.
+═══════════════════════════════════════════════════════════════════ -->
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -881,6 +902,37 @@
   .hatch-tree-panel { display: block; }
   .hatch-tree-panel.hidden { display: none; }
 
+  .season-toggle {
+    display: flex;
+    width: max-content;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+
+  .season-btn {
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 7px 18px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+
+  .season-btn:last-child { border-right: none; }
+  .season-btn:hover { color: var(--ink); }
+
+  .season-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
   /* Question box */
   .h-q-box {
     background: var(--paper-2);
@@ -1505,7 +1557,12 @@
 <div id="tab-hatch" class="tab-panel" style="display:none">
   <div class="hatch-wrap">
 
-    <p style="font-size:0.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:1.25rem; font-weight:500">Spring patterns — mid-March through mid-June · Roaring Fork &amp; Colorado Rivers near Glenwood Springs</p>
+    <div class="season-toggle" role="tablist" aria-label="Season">
+      <button class="season-btn" data-season="spring" onclick="setSeason('spring')">Spring</button>
+      <button class="season-btn" data-season="summer" onclick="setSeason('summer')">Summer</button>
+      <button class="season-btn" data-season="fall" onclick="setSeason('fall')">Fall</button>
+    </div>
+    <p id="season-note" style="font-size:0.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:1.25rem; font-weight:500"></p>
 
     <div class="hatch-now">
       <div class="hatch-now-title">Active hatches — Roaring Fork River</div>
@@ -1769,6 +1826,38 @@ function gdWindowStr(offsetStart, offsetEnd) {
   const ms = 86400000;
   return gdShortDate(new Date(GD.onset.getTime() + offsetStart * ms))
        + '–' + gdShortDate(new Date(GD.onset.getTime() + offsetEnd * ms));
+}
+
+// gdReachNote(reach): one-sentence live drake status for
+// 'lower' | 'middle' | 'upper'. Reads GD (set by computeGDOnset);
+// safe before onset is known. Returns '' for an unknown reach.
+const GD_OFFSETS = { lower: [0, 35], middle: [14, 49], upper: [28, 63] };
+
+function gdReachNote(reach) {
+  const off = GD_OFFSETS[reach];
+  if (!off) return '';
+  if (!GD.onset) {
+    return gdStatus().approaching
+      ? 'Onset not detected yet, but water is warming toward the '
+        + '52°F trigger — drakes could start on the Lower within days.'
+      : 'No drake onset detected this year yet — not expected on any '
+        + 'reach. Watch the Conditions tab for the onset banner.';
+  }
+  const d = (new Date() - GD.onset) / 86400000;
+  const win = gdWindowStr(off[0], off[1]);
+  if (d < off[0])
+    return 'Not on this reach yet — expected window ' + win + '.';
+  if (d > off[1])
+    return reach === 'upper'
+      ? 'Drake season is likely finished for the year '
+        + '(window was ' + win + ').'
+      : 'Likely finished on this reach (window was ' + win + ') — '
+        + 'the hatch moves upstream, so try a reach further up.';
+  const st = gdStatus();
+  const peak = { lower: st.lowerPeak, middle: st.middlePeak,
+                 upper: st.upperPeak }[reach];
+  return 'Drakes should be on this reach now'
+       + (peak ? ' — peak window' : '') + ' (' + win + ').';
 }
 
 function isHatchActive(h) {
@@ -2637,46 +2726,6 @@ const DRY_RESULTS = {
              + 'changing flies — drag kills more than '
              + 'wrong pattern.'
   },
-  bwo_small: {
-    type: 'dry', name: 'Blue-Winged Olive',
-    sub: 'Baetis — small profile',
-    tags: ['#20–22', 'March–May'],
-    props: [
-      ['Wing shape', 'Upright sail, gray'],
-      ['Body', 'Olive'],
-      ['Rise form', 'Sipping'],
-      ['Size note', 'Spring runs larger than fall']
-    ],
-    patterns: [
-      { name: 'Parachute BWO', size: '#20' },
-      { name: 'Vis-A-Dun', size: '#20' },
-      { name: 'CDC Comparadun', size: '#20–22' },
-      { name: 'Perfect Baetis', size: '#20–22', local: true },
-      { name: 'No Hackle BWO', size: '#20–22', local: true }
-    ],
-    condition: 'Spring BWOs on the Fork run #18–20. '
-             + 'If they look smaller, size down to #20–22.'
-  },
-  bwo_lg: {
-    type: 'dry', name: 'Blue-Winged Olive',
-    sub: 'Baetis — larger profile',
-    tags: ['#18–20', 'March–May'],
-    props: [
-      ['Wing shape', 'Upright sail'],
-      ['Body', 'Pale olive'],
-      ['Rise form', 'Deliberate'],
-      ['Watch for', 'Early PMD late April']
-    ],
-    patterns: [
-      { name: 'Parachute BWO', size: '#18–20' },
-      { name: 'Sparkle Dun', size: '#18–20' },
-      { name: 'Vis-A-Dun', size: '#18–20' },
-      { name: 'Perfect Baetis', size: '#18–20', local: true },
-      { name: 'Hackle Dun Baetis', size: '#18–20', local: true }
-    ],
-    condition: 'If body looks pinkish-tan rather than '
-             + 'olive in late April–May, lean toward PMD.'
-  },
   skwala_bank: {
     type: 'dry', name: 'Skwala stonefly',
     sub: 'Skwala — bank feeders',
@@ -2780,20 +2829,20 @@ const DRY_RESULTS = {
   },
   not_spring: {
     type: 'caution', name: 'Not a spring hatch',
-    sub: 'Summer bug — wrong season',
+    sub: 'Summer bug — wrong season tree',
     tags: ['Summer', 'Post-runoff'],
     props: [
       ['Likely', 'Golden stonefly or Salmonfly'],
-      ['Season', 'May–July post-runoff'],
-      ['Action', 'Switch to nymphs']
+      ['Season', 'Jun–Sep post-runoff'],
+      ['Action', 'Use the Summer toggle above']
     ],
     patterns: [
-      { name: 'Nymph rig recommended', size: '—' },
-      { name: 'Check again post-runoff', size: 'Jun–Jul' }
+      { name: 'Switch season to Summer', size: '↑' },
+      { name: 'Golden stone patterns live there', size: '#4–12' }
     ],
-    condition: 'Orange-yellow large stoneflies are summer '
-             + 'bugs. Nymph is your best bet until '
-             + 'runoff clears in late June.'
+    condition: 'Orange-yellow large stoneflies are summer bugs. '
+             + 'Flip the season toggle above to Summer for golden '
+             + 'stone and Yellow Sally dry patterns.'
   }
 };
 
@@ -3398,6 +3447,977 @@ const NYMPH_RESULTS = {
 
 };
 
+// ── SUMMER DRY FLY TREE ───────────────────────────────
+// Pattern rankings from 522 summer records (Jun 15–Sep 15, 2017–2026)
+// in the Taylor Creek dataset. Green Drake is the anchor question;
+// its results are reach-aware via gdReachNote(). Trico excluded —
+// 5 mentions in 1,793 reports.
+
+const SUMMER_DRY_DATA = {
+  q1: {
+    label: 'Step 1 of 2',
+    text: 'What are you seeing on the water?',
+    opts: [
+      { label: 'Big olive mayfly — sail wings, dime-size or bigger',
+        val: 'gd' },
+      { label: 'Yellow-olive mayfly, fingernail size, mid-morning',
+        val: 'pmd' },
+      { label: 'Golden or yellow stonefly around the banks',
+        val: 'stone' },
+      { label: 'Tan/brown tent wings, skittering — moth-like',
+        val: 'caddis_su' },
+      { label: 'Nothing hatching — hot afternoon, maybe breezy',
+        val: 'terr' },
+      { label: 'Tiny stuff — pepper specks, subtle sips',
+        val: 'tiny_su' }
+    ]
+  },
+  q2_gd: {
+    label: 'Step 2 of 2',
+    text: 'Which reach are you fishing?',
+    opts: [
+      { label: 'Lower — Carbondale down to Glenwood',
+        val: 'gd_lower' },
+      { label: 'Middle — Basalt to Carbondale',
+        val: 'gd_middle' },
+      { label: 'Upper — Aspen down to Basalt',
+        val: 'gd_upper' }
+    ]
+  },
+  q2_pmd: {
+    label: 'Step 2 of 2',
+    text: 'How are fish taking it?',
+    opts: [
+      { label: 'Confident rises to upright duns',
+        val: 'pmd_dun' },
+      { label: 'Sipping in the film, refusing your dun',
+        val: 'pmd_emerger' }
+    ]
+  },
+  q2_stone: {
+    label: 'Step 2 of 2',
+    text: 'How big is it?',
+    opts: [
+      { label: 'Big — 1.5 to 2 inches, golden brown',
+        val: 'golden_stone' },
+      { label: 'Small — half an inch, bright yellow',
+        val: 'yellow_sally' }
+    ]
+  },
+  q2_caddis_su: {
+    label: 'Step 2 of 2',
+    text: 'How are fish reacting?',
+    opts: [
+      { label: 'Splashy, aggressive — chasing something moving',
+        val: 'caddis_su_active' },
+      { label: 'Quieter, taking something in the film',
+        val: 'caddis_su_film' }
+    ]
+  },
+  q2_terr: {
+    label: 'Step 2 of 2',
+    text: 'Where are you fishing?',
+    opts: [
+      { label: 'Grassy banks, breezy afternoon',
+        val: 'terr_hopper' },
+      { label: 'Foam lines and slicks — subtle takes',
+        val: 'terr_ant' }
+    ]
+  },
+  q2_tiny_su: {
+    label: 'Step 2 of 2',
+    text: 'What does it look like up close?',
+    opts: [
+      { label: 'Mosquito-like, swarming above the water',
+        val: 'midge_su' },
+      { label: 'Tiny sailboat wings upright, olive body',
+        val: 'bwo_su' }
+    ]
+  }
+};
+
+const SUMMER_DRY_FLOW = {
+  gd: 'q2_gd', pmd: 'q2_pmd', stone: 'q2_stone',
+  caddis_su: 'q2_caddis_su', terr: 'q2_terr',
+  tiny_su: 'q2_tiny_su'
+};
+
+const GD_PATTERNS = [
+  { name: 'Sparkledun Green Drake', size: '#10–12', local: true },
+  { name: 'Winged Green Drake', size: '#12', local: true },
+  { name: 'Drake Cripple', size: '#10–12', local: true },
+  { name: 'High Profile Green Drake', size: '#12–14', local: true },
+  { name: 'Parachute Green Drake', size: '#10–12' }
+];
+
+const SUMMER_DRY_RESULTS = {
+  gd_lower: {
+    type: 'dry', name: 'Green Drake — Lower Fork',
+    sub: 'Drunella grandis — Carbondale to Glenwood',
+    tags: ['#10–12', 'Late Jun–Jul', 'Evenings'],
+    props: [
+      ['Wing shape', 'Upright, large — mayfly'],
+      ['Body', 'Olive / green'],
+      ['Rise form', 'Aggressive, deliberate'],
+      ['Best time', 'Last 2 hours of light']
+    ],
+    patterns: GD_PATTERNS,
+    gdReach: 'lower',
+    condition: 'The hatch starts here and moves upstream. '
+             + 'Target foam lines and transition edges; '
+             + 'use a cripple if they refuse the dun.'
+  },
+  gd_middle: {
+    type: 'dry', name: 'Green Drake — Middle Fork',
+    sub: 'Drunella grandis — Basalt to Carbondale',
+    tags: ['#10–12', 'Jul', 'Evenings'],
+    props: [
+      ['Wing shape', 'Upright, large — mayfly'],
+      ['Body', 'Olive / green'],
+      ['Rise form', 'Aggressive, deliberate'],
+      ['Best time', 'Last 2 hours of light']
+    ],
+    patterns: GD_PATTERNS,
+    gdReach: 'middle',
+    condition: 'Middle reach fishes ~2–4 weeks behind the Lower. '
+             + 'Target foam lines and transition edges; '
+             + 'use a cripple if they refuse the dun.'
+  },
+  gd_upper: {
+    type: 'dry', name: 'Green Drake — Upper Fork',
+    sub: 'Drunella grandis — Aspen to Basalt',
+    tags: ['#10–12', 'Late Jul–Aug', 'Evenings'],
+    props: [
+      ['Wing shape', 'Upright, large — mayfly'],
+      ['Body', 'Olive / green'],
+      ['Rise form', 'Aggressive, deliberate'],
+      ['Best time', 'Last 2 hours of light']
+    ],
+    patterns: GD_PATTERNS,
+    gdReach: 'upper',
+    condition: 'The hatch arrives here last — often the best '
+             + 'dry fly fishing of late summer. Target foam lines; '
+             + 'use a cripple if they refuse the dun.'
+  },
+  pmd_dun: {
+    type: 'dry', name: 'Pale Morning Dun',
+    sub: 'Ephemerella — the Fork\'s most reliable summer mayfly',
+    tags: ['#14–18', 'Jun–Sep', 'Mid-morning'],
+    props: [
+      ['Wing shape', 'Upright sail, pale gray'],
+      ['Body', 'Yellow-olive'],
+      ['Rise form', 'Steady, confident'],
+      ['Best time', '9am–noon']
+    ],
+    patterns: [
+      { name: 'Perfect PMD', size: '#16–18', local: true },
+      { name: 'Sparkledun PMD', size: '#14–18', local: true },
+      { name: 'Hackle Dun PMD', size: '#16–18', local: true },
+      { name: 'Melon Quill', size: '#16–18', local: true },
+      { name: 'Parachute PMD', size: '#16–18' }
+    ],
+    condition: 'In 79% of summer shop reports — the workhorse hatch. '
+             + 'Dead drift in the riffle seams where duns collect.'
+  },
+  pmd_emerger: {
+    type: 'dry', name: 'PMD emerger / cripple',
+    sub: 'Ephemerella — fish keyed below the surface',
+    tags: ['#16–18', 'Jun–Sep', 'Film'],
+    props: [
+      ['Wing shape', 'Trapped in shuck'],
+      ['Body', 'Yellow-olive / rusty'],
+      ['Rise form', 'Sip — no bubble'],
+      ['Tippet', '5x–6x']
+    ],
+    patterns: [
+      { name: 'Sparkledun PMD Pink', size: '#16–18', local: true },
+      { name: 'No Hackle PMD', size: '#16–18', local: true },
+      { name: 'Split Flag PMD', size: '#16–18', local: true },
+      { name: 'CDC Rusty Spinner', size: '#14–18', local: true }
+    ],
+    condition: 'Rises without bubbles mean emergers, not duns. '
+             + 'Evening spinner falls — switch to the Rusty Spinner.'
+  },
+  golden_stone: {
+    type: 'dry', name: 'Golden Stonefly',
+    sub: 'Big summer stonefly — banks and structure',
+    tags: ['#4–12', 'Jun–Sep', 'Banks'],
+    props: [
+      ['Wing shape', 'Flat over body'],
+      ['Body', 'Golden brown, 1.5–2"'],
+      ['Rise form', 'Explosive'],
+      ['Best time', 'Morning–midday']
+    ],
+    patterns: [
+      { name: 'Chubby Chernobyl (gold)', size: '#6–12' },
+      { name: 'Rogue Foam Golden Stone', size: '#4–10', local: true },
+      { name: 'Egg Laying Golden Stone', size: '#4–8', local: true },
+      { name: 'Cloud Nine Golden Stone', size: '#6–10', local: true }
+    ],
+    condition: 'Slap it down tight to the bank — the splat is the '
+             + 'trigger. Runs through September on Lower and Upper Fork.'
+  },
+  yellow_sally: {
+    type: 'dry', name: 'Yellow Sally',
+    sub: 'Small yellow stonefly — secondary emergence',
+    tags: ['#14–16', 'Jun–Sep', 'Afternoon'],
+    props: [
+      ['Wing shape', 'Flat over body'],
+      ['Body', 'Bright yellow, ~1/2"'],
+      ['Rise form', 'Quick, splashy'],
+      ['Best time', 'Afternoon']
+    ],
+    patterns: [
+      { name: 'Hairy Sally', size: '#14–16', local: true },
+      { name: 'Garcia\'s Mini Hot Sally', size: '#16', local: true },
+      { name: 'Yellow Stimulator', size: '#14–16' }
+    ],
+    condition: 'Great searching dry or dry-dropper indicator when '
+             + 'nothing bigger is showing. In half of all summer reports.'
+  },
+  caddis_su_active: {
+    type: 'dry', name: 'Caddis — active adults',
+    sub: 'Evening flights — the Fork\'s constant',
+    tags: ['#12–18', 'All summer', 'Evenings'],
+    props: [
+      ['Wing shape', 'Tent, hairy'],
+      ['Body', 'Tan / olive'],
+      ['Rise form', 'Splashy, chasing'],
+      ['Best time', 'Last light']
+    ],
+    patterns: [
+      { name: 'Pearl and Elk Caddis', size: '#12–18', local: true },
+      { name: 'Ethawing Caddis', size: '#14–18', local: true },
+      { name: 'Elk Hair Caddis', size: '#14–18' },
+      { name: 'Goddard Caddis', size: '#16–18' }
+    ],
+    condition: 'In virtually every summer report (99.8%). Skitter or '
+             + 'swing the fly — motion draws the strike.'
+  },
+  caddis_su_film: {
+    type: 'dry', name: 'Caddis — in the film',
+    sub: 'Spent or emerging caddis, quiet takes',
+    tags: ['#14–18', 'All summer', 'Film'],
+    props: [
+      ['Wing shape', 'Tent, low profile'],
+      ['Body', 'Tan / olive'],
+      ['Rise form', 'Quiet sip'],
+      ['Best time', 'Evening']
+    ],
+    patterns: [
+      { name: 'Missing Link Caddis', size: '#14–18', local: true },
+      { name: 'Peacock Caddis', size: '#14–18', local: true },
+      { name: 'X-Caddis', size: '#16–18' }
+    ],
+    condition: 'Quiet takes mean spent or crippled caddis flush in '
+             + 'the film. Dead drift — no skitter.'
+  },
+  terr_hopper: {
+    type: 'dry', name: 'Hopper',
+    sub: 'Terrestrials — banks and grass edges',
+    tags: ['#6–12', 'Jul–Sep', 'Afternoon'],
+    props: [
+      ['Profile', 'Big foam body'],
+      ['Body', 'Tan / gold / pink'],
+      ['Rise form', 'Confident eat'],
+      ['Best time', 'Hot, windy afternoons']
+    ],
+    patterns: [
+      { name: 'Chubby Chernobyl', size: '#6–12' },
+      { name: 'Charlie Boy Hopper', size: '#12', local: true },
+      { name: 'Skippy Hopper', size: '#8–12', local: true },
+      { name: 'Fat Albert', size: '#6–10' }
+    ],
+    condition: 'Wind is your friend — it blows hoppers in. Tight to '
+             + 'the bank, twitch it once. Add a dropper to double your odds.'
+  },
+  terr_ant: {
+    type: 'dry', name: 'Ant / beetle',
+    sub: 'Terrestrials — foam lines and slicks',
+    tags: ['#8–18', 'Jul–Sep', 'Foam lines'],
+    props: [
+      ['Profile', 'Low, segmented'],
+      ['Body', 'Black / cinnamon'],
+      ['Rise form', 'Subtle sip'],
+      ['Best time', 'Afternoon']
+    ],
+    patterns: [
+      { name: 'Amy\'s Ant', size: '#8–10' },
+      { name: 'Black Foam Ant', size: '#16–18' },
+      { name: 'Foam Beetle', size: '#14–16' }
+    ],
+    condition: 'Fish sipping in foam lines with nothing visible are '
+             + 'often on ants. The fly is hard to see — track the drift.'
+  },
+  midge_su: {
+    type: 'dry', name: 'Midge — summer',
+    sub: 'Chironomidae — mornings and flats',
+    tags: ['#20–24', 'All summer', 'Calm water'],
+    props: [
+      ['Wing shape', 'Flat/low, tiny'],
+      ['Body', 'Gray / black'],
+      ['Rise form', 'Subtle sip'],
+      ['Best time', 'Early morning']
+    ],
+    patterns: [
+      { name: 'Sprout Midge', size: '#18–24', local: true },
+      { name: 'HOH CDC Midge Adult', size: '#22–24', local: true },
+      { name: 'Griffith\'s Gnat', size: '#20–22' }
+    ],
+    condition: 'Midges never stop on the Fork — in 93% of summer '
+             + 'reports. Dead drift only; any drag = refusal.'
+  },
+  bwo_su: {
+    type: 'dry', name: 'BWO — summer',
+    sub: 'Baetis — still hatching, smaller than spring',
+    tags: ['#18–22', 'All summer', 'Cloudy days'],
+    props: [
+      ['Wing shape', 'Upright sail, gray'],
+      ['Body', 'Olive'],
+      ['Rise form', 'Steady'],
+      ['Best time', 'Overcast afternoons']
+    ],
+    patterns: [
+      { name: 'Perfect Baetis', size: '#18–22', local: true },
+      { name: 'No Hackle BWO', size: '#20–22', local: true },
+      { name: 'Parachute BWO', size: '#18–20' }
+    ],
+    condition: 'Summer BWOs run a size smaller than spring. Best on '
+             + 'the first cloudy day after a hot stretch.'
+  }
+};
+
+// ── SUMMER NYMPH TREE ─────────────────────────────────
+
+const SUMMER_NYMPH_DATA = {
+  q1: {
+    label: 'Step 1',
+    text: 'How are you fishing?',
+    opts: [
+      { label: 'Indicator rig through riffles and runs',
+        val: 'ind' },
+      { label: 'Fish are flashing — a hatch is coming off',
+        val: 'hatch_su' },
+      { label: 'Dry-dropper along the banks',
+        val: 'dd' }
+    ]
+  },
+  q2_ind: {
+    label: 'Step 2',
+    text: 'Water clarity?',
+    opts: [
+      { label: 'Clear — 3+ feet of visibility',
+        val: 'ind_clear' },
+      { label: 'Off-color after rain or a flow bump',
+        val: 'worm_rig' }
+    ]
+  },
+  q3_ind_clear: {
+    label: 'Step 3',
+    text: 'Big bugs around — golden stones or drakes?',
+    opts: [
+      { label: 'Yes — seeing adults or shucks on rocks',
+        val: 'stone_rig' },
+      { label: 'No — just covering water',
+        val: 'riffle_standard' }
+    ]
+  },
+  q2_hatch_su: {
+    label: 'Step 2',
+    text: 'What\'s hatching?',
+    opts: [
+      { label: 'Yellowish PMDs — #16 mayflies',
+        val: 'pmd_rig' },
+      { label: 'Small olives or midges',
+        val: 'baetis_rig' }
+    ]
+  },
+  q2_dd: {
+    label: 'Step 2',
+    text: 'What\'s the water like?',
+    opts: [
+      { label: 'Riffled, faster water',
+        val: 'dd_heavy' },
+      { label: 'Smooth and slower — spooky fish',
+        val: 'dd_light' }
+    ]
+  }
+};
+
+const SUMMER_NYMPH_FLOW = {
+  ind: 'q2_ind', ind_clear: 'q3_ind_clear',
+  hatch_su: 'q2_hatch_su', dd: 'q2_dd'
+};
+
+const SUMMER_NYMPH_RESULTS = {
+  riffle_standard: {
+    type: 'nymph', name: 'Post-runoff riffle rig',
+    sub: 'The bread-and-butter summer setup',
+    tags: ['Riffles', 'Clear water', 'All summer'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Indicator or euro'],
+      ['Drift', 'Dead drift through seams'],
+      ['Key', 'Cover water, keep moving']
+    ],
+    rig: {
+      lead:    { name: 'Prince Nymph', size: '#14–16' },
+      dropper: { name: 'Freestone Emerger', size: '#20–22' },
+      spacing: '16" between flies. Light or no shot in riffles — '
+             + 'the lead fly carries the rig down.'
+    },
+    alts: [
+      { name: 'Biot Baetis', size: '#18–22',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'BLMs', size: '#18–20',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Sparklewing RS2', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'Freestone Emerger and Biot Baetis are the two most-'
+             + 'recommended flies all summer (74% and 67% of reports). '
+             + 'Fish eat the small fly — the lead is the delivery truck.'
+  },
+  stone_rig: {
+    type: 'nymph', name: 'Stonefly rig',
+    sub: 'Golden stones and drake nymphs active',
+    tags: ['Riffles', 'Big bugs', 'Jun–Sep'],
+    props: [
+      ['Depth', '2–4 feet'],
+      ['Method', 'Indicator nymphing'],
+      ['Drift', 'Dead drift, ticking bottom'],
+      ['Key', 'Fish the drop-offs below riffles']
+    ],
+    rig: {
+      lead:    { name: 'Twenty Incher', size: '#10–14' },
+      dropper: { name: 'Freestone Emerger', size: '#20–22' },
+      spacing: '18" between flies. Stone nymphs crawl toward the '
+             + 'banks before emerging — work the edges too.'
+    },
+    alts: [
+      { name: 'Cat Poop Stone', size: '#4–10',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'Poxyback Golden Stone', size: '#8–12',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'Poxyback Drake Nymph', size: '#12',
+        note: 'local TC pattern — during drake window', replaces: 'lead' }
+    ],
+    condition: 'Before and during the golden stone emergence the big '
+             + 'nymph is the meal; the dropper picks up everything else.'
+  },
+  worm_rig: {
+    type: 'nymph', name: 'Worm rig — off-color water',
+    sub: 'After rain or a flow bump',
+    tags: ['Off-color', 'After rain', 'Banks'],
+    props: [
+      ['Depth', '2–4 feet'],
+      ['Method', 'Indicator nymphing'],
+      ['Drift', 'Slow, tight to banks'],
+      ['Key', 'Fish move to soft edges']
+    ],
+    rig: {
+      lead:    { name: 'San Juan Worm', size: '#10–12' },
+      dropper: { name: 'Freestone Emerger (olive)', size: '#20–22' },
+      spacing: '16" between flies. Add shot — dirty water means '
+             + 'fish hug the bottom in the soft water.'
+    },
+    alts: [
+      { name: 'Cat Poop Stone', size: '#4–10',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'Neon Nightmare', size: '#20–24',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'Rain washes worms in — the shop calls the San Juan in '
+             + '41% of summer reports. Off-color water is a feeding '
+             + 'trigger, not a write-off.'
+  },
+  pmd_rig: {
+    type: 'nymph', name: 'PMD nymph rig',
+    sub: 'Match the hatch below the surface',
+    tags: ['Hatch on', '#16–18', 'Morning'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Indicator or sighter'],
+      ['Drift', 'Dead drift, upper column'],
+      ['Key', 'Fish feed shallow during emergence']
+    ],
+    rig: {
+      lead:    { name: 'Tungsten Split Case PMD', size: '#16–18' },
+      dropper: { name: 'PMD Halfback Emerger', size: '#14–18' },
+      spacing: '14" between flies. No shot — flashing fish are '
+             + 'eating emergers up in the column, not on the bottom.'
+    },
+    alts: [
+      { name: 'Jerome PMD', size: '#16–18',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'Sparklewing RS2', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'Both rig flies are local TC patterns — the shop\'s '
+             + 'top PMD nymphs. Takes are soft during emergence; '
+             + 'set on anything.'
+  },
+  baetis_rig: {
+    type: 'nymph', name: 'Baetis / midge rig',
+    sub: 'Small-bug emergence, summer staple',
+    tags: ['Hatch on', '#18–22', 'Any day'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Indicator or sighter'],
+      ['Drift', 'Dead drift in seams'],
+      ['Key', 'Small flies, light tippet']
+    ],
+    rig: {
+      lead:    { name: 'Biot Baetis', size: '#18–22' },
+      dropper: { name: 'Sparklewing RS2', size: '#20–22' },
+      spacing: '14" between flies. Micro shot if needed — this is '
+             + 'a finesse rig, not a bottom-dredger.'
+    },
+    alts: [
+      { name: 'BH Polywing Emerger', size: '#18–20',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'BTS Baetis', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Soft Hackle BWO', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'All four top summer nymphs in the shop data are small '
+             + 'baetis/midge patterns — this rig is them, in order.'
+  },
+  dd_heavy: {
+    type: 'nymph', name: 'Dry-dropper — riffled water',
+    sub: 'Hopper up top, weight below',
+    tags: ['Dry-dropper', 'Banks', 'Jul–Sep'],
+    props: [
+      ['Depth', 'Dropper 24–30" down'],
+      ['Method', 'Dry-dropper'],
+      ['Drift', 'Tight to banks'],
+      ['Key', 'Two chances every cast']
+    ],
+    rig: {
+      lead:    { name: 'Chubby Chernobyl (dry)', size: '#6–12' },
+      dropper: { name: 'Twenty Incher', size: '#14–16' },
+      spacing: 'Dropper 24–30" below the dry on 4x–5x. The foam '
+             + 'Chubby floats a heavy tungsten dropper fine.'
+    },
+    alts: [
+      { name: 'Tungsten Split Case PMD', size: '#16–18',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Jigged Pheasant Tail', size: '#16–18',
+        replaces: 'dropper' }
+    ],
+    condition: 'The classic summer bank rig. Fish eat the dropper '
+             + '2-to-1 but the Chubby eats are the ones you remember.'
+  },
+  dd_light: {
+    type: 'nymph', name: 'Dry-dropper — smooth water',
+    sub: 'Lighter rig for spooky fish',
+    tags: ['Dry-dropper', 'Flats', 'Technical'],
+    props: [
+      ['Depth', 'Dropper 18–24" down'],
+      ['Method', 'Dry-dropper'],
+      ['Drift', 'Long leader, gentle cast'],
+      ['Key', 'Land it soft']
+    ],
+    rig: {
+      lead:    { name: 'Charlie Boy Hopper (dry)', size: '#12' },
+      dropper: { name: 'Pheasant Tail', size: '#18–20' },
+      spacing: 'Dropper 18–24" below the dry on 5x. Smaller dry, '
+             + 'unweighted or lightly-beaded dropper.'
+    },
+    alts: [
+      { name: 'Jigged CDC Pheasant Tail', size: '#16–18',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Biot Baetis', size: '#18–22',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'A #6 Chubby crashing down puts flat-water fish down. '
+             + 'Downsize everything and lead the fish by 6 feet.'
+  }
+};
+
+// ── FALL DRY FLY TREE ─────────────────────────────────
+// From 336 fall records (Sep 16–Nov 30): BWO 97%, Midge 97%,
+// Caddis 60%, PMD 45%. Fall is a two-bug game — BWO is the anchor.
+
+const FALL_DRY_DATA = {
+  q1: {
+    label: 'Step 1',
+    text: 'What are you seeing on the water?',
+    opts: [
+      { label: 'Small gray-olive mayflies — overcast afternoon',
+        val: 'bwo_f' },
+      { label: 'Tiny black/gray specks, singles or clusters',
+        val: 'midge_f' },
+      { label: 'Tan caddis fluttering in the afternoon sun',
+        val: 'caddis_fall' },
+      { label: 'Yellowish mayfly or rust-colored spinner, morning',
+        val: 'pmd_fall' },
+      { label: 'Nothing hatching — warm Indian-summer day',
+        val: 'terr_fall' }
+    ]
+  },
+  q2_bwo_f: {
+    label: 'Step 2',
+    text: 'Where are they rising?',
+    opts: [
+      { label: 'Riffled current — steady, confident rises',
+        val: 'bwo_fall_classic' },
+      { label: 'Flat slow water — picky sippers',
+        val: 'bwo_fall_flat' }
+    ]
+  },
+  q2_midge_f: {
+    label: 'Step 2',
+    text: 'How are the fish rising?',
+    opts: [
+      { label: 'Subtle sips at clusters',
+        val: 'midge_fall_cluster' },
+      { label: 'Steady dimples — taking emergers',
+        val: 'midge_fall_emerger' }
+    ]
+  }
+};
+
+const FALL_DRY_FLOW = {
+  bwo_f: 'q2_bwo_f', midge_f: 'q2_midge_f'
+};
+
+const FALL_DRY_RESULTS = {
+  bwo_fall_classic: {
+    type: 'dry', name: 'Fall BWO',
+    sub: 'Baetis — the best dry fly fishing of the year',
+    tags: ['#18–22', 'Sep–Nov', 'Overcast'],
+    props: [
+      ['Wing shape', 'Upright sail, gray'],
+      ['Body', 'Olive'],
+      ['Rise form', 'Steady, deliberate'],
+      ['Best time', 'Midday–afternoon']
+    ],
+    patterns: [
+      { name: 'No Hackle BWO', size: '#20–22', local: true },
+      { name: 'Perfect Baetis', size: '#18–22', local: true },
+      { name: 'Hackle Dun Baetis', size: '#20–22', local: true },
+      { name: 'Sparkle Dun BWO', size: '#18–20' }
+    ],
+    condition: 'In 97% of fall reports. Gray, drizzly afternoons are '
+             + 'the best of the year — fish key tightly to the hatch.'
+  },
+  bwo_fall_flat: {
+    type: 'dry', name: 'Fall BWO — flat water',
+    sub: 'Baetis — technical presentation',
+    tags: ['#20–22', 'Sep–Nov', 'Technical'],
+    props: [
+      ['Wing shape', 'Upright sail, gray'],
+      ['Body', 'Olive'],
+      ['Rise form', 'Sipping, picky'],
+      ['Tippet', '6x–7x']
+    ],
+    patterns: [
+      { name: 'Perfect Baetis', size: '#20–22', local: true },
+      { name: 'CDC Comparadun BWO', size: '#18–22', local: true },
+      { name: 'Collett\'s Parachute BWO', size: '#18–22', local: true }
+    ],
+    condition: 'Low clear fall water makes fish picky. Long leader, '
+             + 'downstream reach cast, one good drift beats ten sloppy ones.'
+  },
+  midge_fall_cluster: {
+    type: 'dry', name: 'Midge cluster — fall',
+    sub: 'Chironomidae — surface film',
+    tags: ['#20–24', 'Sep–Nov', 'Calm water'],
+    props: [
+      ['Wing shape', 'Flat/low, tiny'],
+      ['Body', 'Gray / black'],
+      ['Rise form', 'Subtle sip'],
+      ['Best time', 'Late morning']
+    ],
+    patterns: [
+      { name: 'Griffith\'s Gnat', size: '#20–22' },
+      { name: 'Sprout Midge', size: '#18–24', local: true },
+      { name: 'Morgans Midge', size: '#18–20', local: true }
+    ],
+    condition: 'Midges match BWOs in 97% of fall reports. Clusters '
+             + 'ride the foam lines — dead drift only.'
+  },
+  midge_fall_emerger: {
+    type: 'dry', name: 'Midge emerger — fall',
+    sub: 'Chironomidae — transitioning to surface',
+    tags: ['#20–24', 'Sep–Nov', 'Film'],
+    props: [
+      ['Wing shape', 'Flat/low, tiny'],
+      ['Body', 'Gray / black'],
+      ['Rise form', 'Subtle dimple'],
+      ['Best time', 'All day']
+    ],
+    patterns: [
+      { name: 'HOH CDC Spent Midge', size: '#22–24', local: true },
+      { name: 'Hatching Midge', size: '#20–22', local: true },
+      { name: 'Bill\'s Midge Emerger', size: '#20–24', local: true }
+    ],
+    condition: 'Fish just below the film. Try a dry-dropper: cluster '
+             + 'pattern up top, emerger 8" behind on the same tippet.'
+  },
+  caddis_fall: {
+    type: 'dry', name: 'Fall caddis',
+    sub: 'Last caddis of the year — warm afternoons',
+    tags: ['#14–18', 'Sep–Oct', 'Afternoon'],
+    props: [
+      ['Wing shape', 'Tent, hairy'],
+      ['Body', 'Tan / olive'],
+      ['Rise form', 'Splashy'],
+      ['Best time', 'Warmest part of day']
+    ],
+    patterns: [
+      { name: 'Pearl and Elk Caddis', size: '#14–18', local: true },
+      { name: 'Ethawing Caddis', size: '#14–18', local: true },
+      { name: 'Missing Link Caddis', size: '#14–18', local: true },
+      { name: 'Peacock Caddis', size: '#14–18', local: true }
+    ],
+    condition: 'Still in 60% of fall reports through mid-October. '
+             + 'Activity compresses into the warm afternoon window.'
+  },
+  pmd_fall: {
+    type: 'dry', name: 'Late PMD / Rusty Spinner',
+    sub: 'Ephemerella — tail end of the hatch',
+    tags: ['#14–18', 'Sep–Oct', 'Morning'],
+    props: [
+      ['Wing shape', 'Upright or spent'],
+      ['Body', 'Yellow-olive / rust'],
+      ['Rise form', 'Steady or sip'],
+      ['Best time', 'Mid-morning']
+    ],
+    patterns: [
+      { name: 'Hackle Dun PMD', size: '#16–18', local: true },
+      { name: 'Melon Quill PMD', size: '#16–20', local: true },
+      { name: 'CDC Rusty Spinner', size: '#14–18', local: true },
+      { name: 'Flag Dun PMD', size: '#16–18', local: true }
+    ],
+    condition: 'PMDs hang on into early October (45% of fall reports). '
+             + 'Spent rust-colored spinners in the flats — fish sip them quietly.'
+  },
+  terr_fall: {
+    type: 'dry', name: 'Late-season terrestrial',
+    sub: 'Hoppers and ants until the first hard frost',
+    tags: ['#8–12', 'Sep–mid Oct', 'Warm days'],
+    props: [
+      ['Profile', 'Big foam body'],
+      ['Body', 'Tan / gold'],
+      ['Rise form', 'Confident eat'],
+      ['Best time', 'Warm afternoons']
+    ],
+    patterns: [
+      { name: 'Chubby Chernobyl', size: '#8–12' },
+      { name: 'Charlie Boy Hopper', size: '#12', local: true },
+      { name: 'Amy\'s Ant', size: '#8–10' }
+    ],
+    condition: 'Works until the first hard frost kills the hoppers — '
+             + 'usually mid-October. After that, go small or go under.'
+  }
+};
+
+// ── FALL NYMPH TREE ───────────────────────────────────
+
+const FALL_NYMPH_DATA = {
+  q1: {
+    label: 'Step 1',
+    text: 'Where are you fishing?',
+    opts: [
+      { label: 'Riffles and runs',
+        val: 'rif_f' },
+      { label: 'Deep pools and slots — cold morning',
+        val: 'deep_fall_rig' },
+      { label: 'Near tributary mouths — October on',
+        val: 'egg_rig' },
+      { label: 'Slow flats, low clear water',
+        val: 'midge_fall_rig' }
+    ]
+  },
+  q2_rif_f: {
+    label: 'Step 2',
+    text: 'Any olives coming off midday?',
+    opts: [
+      { label: 'Yes — or expecting them this afternoon',
+        val: 'baetis_fall_rig' },
+      { label: 'No — blind searching',
+        val: 'search_fall_rig' }
+    ]
+  }
+};
+
+const FALL_NYMPH_FLOW = { rif_f: 'q2_rif_f' };
+
+const FALL_NYMPH_RESULTS = {
+  baetis_fall_rig: {
+    type: 'nymph', name: 'Fall baetis rig',
+    sub: 'Fish the hours around the BWO hatch',
+    tags: ['Riffles', '#18–22', 'Midday'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Indicator or sighter'],
+      ['Drift', 'Dead drift in seams'],
+      ['Key', 'Best 11am–3pm']
+    ],
+    rig: {
+      lead:    { name: 'Biot Baetis', size: '#18–22' },
+      dropper: { name: 'Sparklewing RS2', size: '#20–22' },
+      spacing: '14" between flies, micro shot if needed. Fish it '
+             + 'the two hours before the hatch — nymphs get active early.'
+    },
+    alts: [
+      { name: 'BH Polywing Emerger', size: '#18–20',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'Imposter', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'BTS Baetis', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'The top four fall nymphs in the shop data are all '
+             + 'small baetis patterns — same as summer, fished slower.'
+  },
+  search_fall_rig: {
+    type: 'nymph', name: 'Fall searching rig',
+    sub: 'No hatch — attractor plus staple',
+    tags: ['Riffles', 'Blind', 'Sep–Nov'],
+    props: [
+      ['Depth', '2–4 feet'],
+      ['Method', 'Indicator nymphing'],
+      ['Drift', 'Dead drift, ticking bottom'],
+      ['Key', 'Slow water first on cold days']
+    ],
+    rig: {
+      lead:    { name: 'Spanflex Stone', size: '#8–12' },
+      dropper: { name: 'Freestone Emerger', size: '#20–22' },
+      spacing: '16–18" between flies, shot 8" above the lead. As '
+             + 'water cools, slow everything down.'
+    },
+    alts: [
+      { name: 'Twenty Incher', size: '#10–16',
+        note: 'local TC pattern', replaces: 'lead' },
+      { name: 'BLMs', size: '#18–20',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'Stonefly nymphs are in the drift year-round. Cold '
+             + 'mornings, fish deep and slow; speed up as it warms.'
+  },
+  deep_fall_rig: {
+    type: 'nymph', name: 'Deep slot rig — cold water',
+    sub: 'Fish pod up as temps drop',
+    tags: ['Deep', 'Cold', 'Oct–Nov'],
+    props: [
+      ['Depth', '3–6 feet'],
+      ['Method', 'Indicator nymphing'],
+      ['Drift', 'Slow, bottom-ticking'],
+      ['Key', 'Find one fish, find twenty']
+    ],
+    rig: {
+      lead:    { name: 'Twenty Incher', size: '#10–16' },
+      dropper: { name: 'BLMs', size: '#18–20' },
+      spacing: '18" between flies, enough shot to tick bottom. '
+             + 'Indicator at 1.5x depth.'
+    },
+    alts: [
+      { name: 'Tailwater Assassin', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Cat Poop Stone', size: '#4–10',
+        note: 'local TC pattern', replaces: 'lead' }
+    ],
+    condition: 'Late fall fish stack in the deep slow slots. Cover a '
+             + 'run thoroughly before moving — they won\'t chase.'
+  },
+  egg_rig: {
+    type: 'nymph', name: 'Egg rig — brown trout spawn',
+    sub: 'Tributary mouths, October–November',
+    tags: ['Eggs', 'Oct–Nov', 'Ethics'],
+    props: [
+      ['Depth', '2–4 feet'],
+      ['Method', 'Indicator nymphing'],
+      ['Drift', 'Slow, deep'],
+      ['Key', 'Fish BELOW spawning gravel']
+    ],
+    rig: {
+      lead:    { name: 'Egg pattern', size: '#16–18' },
+      dropper: { name: 'San Juan Worm', size: '#10–12' },
+      spacing: '16" between flies. Target the buckets and runs '
+             + 'downstream of gravel bars where eggs drift.'
+    },
+    alts: [
+      { name: 'Freestone Emerger', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Rojo Midge', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'Browns spawn Oct–Nov. Never fish to actively spawning '
+             + 'fish or wade through redds (clean gravel patches) — '
+             + 'fish the water downstream where eggs wash to.'
+  },
+  midge_fall_rig: {
+    type: 'nymph', name: 'Midge rig — low clear water',
+    sub: 'Finesse fishing for flat-water fish',
+    tags: ['Flats', '#20–22', 'Technical'],
+    props: [
+      ['Depth', '1–3 feet'],
+      ['Method', 'Indicator or sighter'],
+      ['Drift', 'Long, drag-free'],
+      ['Tippet', '6x fluorocarbon']
+    ],
+    rig: {
+      lead:    { name: 'Rojo Midge', size: '#20–22' },
+      dropper: { name: 'Bead Wing Midge', size: '#20–22' },
+      spacing: '12–14" between flies, yarn indicator or dry-dropper — '
+             + 'a bobber spooks flat-water fish.'
+    },
+    alts: [
+      { name: 'Kingrey\'s Cap\'n Hook', size: '#20–22',
+        note: 'local TC pattern', replaces: 'dropper' },
+      { name: 'Neon Nightmare', size: '#20–24',
+        note: 'local TC pattern', replaces: 'dropper' }
+    ],
+    condition: 'Low clear fall water — approach from downstream, '
+             + 'fish the shade lines, and change flies before leaving fish.'
+  }
+};
+
+// ── Season toggle ─────────────────────────────────────
+
+const SEASON_TREES = {
+  spring: { dry:   [DRY_DATA, DRY_FLOW, DRY_RESULTS],
+            nymph: [NYMPH_DATA, NYMPH_FLOW, NYMPH_RESULTS] },
+  summer: { dry:   [SUMMER_DRY_DATA, SUMMER_DRY_FLOW, SUMMER_DRY_RESULTS],
+            nymph: [SUMMER_NYMPH_DATA, SUMMER_NYMPH_FLOW, SUMMER_NYMPH_RESULTS] },
+  fall:   { dry:   [FALL_DRY_DATA, FALL_DRY_FLOW, FALL_DRY_RESULTS],
+            nymph: [FALL_NYMPH_DATA, FALL_NYMPH_FLOW, FALL_NYMPH_RESULTS] }
+};
+
+const SEASON_NOTE = {
+  spring: 'Spring patterns — mid-March through mid-June',
+  summer: 'Summer patterns — mid-June through mid-September',
+  fall:   'Fall patterns — mid-September through November'
+};
+
+let hatchSeason = 'spring';
+
+// defaultSeason(d): 'spring' | 'summer' | 'fall' for Date d.
+// Dec–Feb maps to spring — its midge/BWO/winter-stonefly content
+// covers winter fishing.
+function defaultSeason(d) {
+  const md = (d.getMonth() + 1) * 100 + d.getDate();
+  if (md >= 615 && md <= 915) return 'summer';
+  if (md >= 916 && md <= 1130) return 'fall';
+  return 'spring';
+}
+
+function setSeason(s) {
+  if (!SEASON_TREES[s]) return;
+  hatchSeason = s;
+  document.querySelectorAll('.season-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.season === s));
+  const note = document.getElementById('season-note');
+  if (note) note.textContent = SEASON_NOTE[s]
+    + ' · Roaring Fork & Colorado Rivers near Glenwood Springs';
+  resetTree('dry');
+  resetTree('nymph');
+}
+
 // ── Tree state ──
 const treeState = {
   dry:   { path: [], el: 'dry-tree',   crumb: 'dry-crumb' },
@@ -3408,9 +4428,8 @@ const treeState = {
 function renderTree(treeKey) {
   const state = treeState[treeKey];
   const isNymph = treeKey === 'nymph';
-  const DATA    = isNymph ? NYMPH_DATA    : DRY_DATA;
-  const FLOW    = isNymph ? NYMPH_FLOW    : DRY_FLOW;
-  const RESULTS = isNymph ? NYMPH_RESULTS : DRY_RESULTS;
+  const [DATA, FLOW, RESULTS] =
+    SEASON_TREES[hatchSeason][isNymph ? 'nymph' : 'dry'];
 
   const treeEl  = document.getElementById(state.el);
   const crumbEl = document.getElementById(state.crumb);
@@ -3554,9 +4573,13 @@ function showResult(treeKey, r, el) {
     html += '</div>';
   }
 
-  // Condition note — append live reach windows for Green Drake when onset is known
+  // Condition note — append live Green Drake status.
+  // Summer reach-specific results carry gdReach; the spring
+  // valley-wide result keeps the all-reach window summary.
   let condText = r.condition;
-  if (r.name === 'Green Drake' && GD.onset) {
+  if (r.gdReach) {
+    condText += ' ' + gdReachNote(r.gdReach);
+  } else if (r.name === 'Green Drake' && GD.onset) {
     condText += ' Current windows: Lower ' + gdWindowStr(0, 35)
               + ' · Middle ' + gdWindowStr(14, 49)
               + ' · Upper ' + gdWindowStr(28, 63) + '.';
@@ -3583,10 +4606,9 @@ function resetTree(treeKey) {
   renderTree(treeKey);
 }
 
-// ── Initialize both trees on page load ──
+// ── Initialize trees (season auto-selected by date) ──
 document.addEventListener('DOMContentLoaded', () => {
-  renderTree('dry');
-  renderTree('nymph');
+  setSeason(defaultSeason(new Date()));
   showReg('rf-lower');
 });
 

@@ -29,15 +29,30 @@ The original hatch calendar was hand-curated from general guidebook knowledge. P
 
 Phase A also added local Taylor Creek fly patterns (tagged `local: true`) to all spring dry and nymph decision-tree result nodes.
 
+### Phase B — Season toggle + summer/fall decision trees (July 2026)
+
+Hatch ID tab now covers the full season. A Spring/Summer/Fall toggle auto-selects by date (Dec–Feb maps to Spring) and can be tapped to override. Four new decision trees, all pattern choices from seasonal cuts of the 9-year dataset:
+
+- **Summer dry** (13 results) — Green Drake anchor question with per-reach follow-up: pick Lower/Middle/Upper and the result includes live onset-window status ("on now — peak", "not here yet, expected Jul 20–Aug 24", "finished, try upstream"). Plus PMD dun/emerger (fixing the missing PMD dry node), Golden Stone, Yellow Sally, caddis ×2, hopper, ant/beetle, summer midge/BWO.
+- **Summer nymph** (7 rigs) — post-runoff riffle rig (Freestone Emerger + Biot Baetis, the dataset's top two summer flies), stonefly, worm (off-color water), PMD, baetis, dry-dropper ×2.
+- **Fall dry** (7 results) — anchored on fall BWO (97% of fall reports); midge ×2, late caddis, PMD/Rusty Spinner, late terrestrial.
+- **Fall nymph** (5 rigs) — baetis, searching, deep-slot, midge, and an egg rig with a fish-below-the-redds ethics note.
+
+**Trico was dropped from the planned summer tree**: 5 mentions in 1,793 reports across 9 years — the shop effectively never calls it on the Fork.
+
+Also: removed two unreachable BWO result nodes from the original spring tree (dead since v1; duplicated reachable content), and the spring "not a spring hatch" node now points at the Summer toggle.
+
+Verified by a jsdom harness (`test_phase_b.mjs`, local-only) that walks all 55 terminal paths across the six trees and the full Green Drake reach-status matrix — 572 checks.
+
 ### Earlier phases
 
 Pre-Phase A history (conditions tab, gauge integration, regulations, spring decision trees) is documented in the local project files (`Fishing_App_Project_Plan 3.0.md`, `RFV-Conditions-Logic-Memo.md`), which are not tracked in this repo.
 
 ---
 
-## Planned — Phase B (summer/fall)
+## Known gaps
 
-1. Season toggle (Spring/Summer/Fall) replacing the hardcoded spring disclaimer
-2. Summer dry fly tree — Green Drake as anchor question, then PMD, Golden Stone, Caddis, Terrestrial, Yellow Sally, Trico
-3. Summer nymph tree — post-runoff riffle rig, PMD matching, dry-dropper hopper
-4. Location-aware Green Drake follow-up using the Phase A onset-derived reach windows
+- `guide-review.html` doesn't reflect Phase A or Phase B logic yet
+- Chart touch interaction: value boxes should track the touched date, reverting to live when released
+- Regulations data is hardcoded — manual CPW update each March
+- Fall fly rankings drawn from the same 9-year dataset but not yet guide-reviewed
